@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif; }
+    a { color: oklch(0.5 0.08 205); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.08 205); }
+    .light {
+      --bg: oklch(0.975 0.006 85); --surface: oklch(0.995 0.003 90); --surface2: oklch(0.942 0.01 85);
+      --ink: oklch(0.25 0.035 240); --ink2: oklch(0.46 0.025 235); --ink3: oklch(0.62 0.018 235);
+      --line: oklch(0.905 0.012 85);
+      --teal: oklch(0.5 0.08 205); --teal-soft: oklch(0.93 0.028 200);
+      --sand: oklch(0.8 0.075 80); --sand-soft: oklch(0.934 0.038 85); --sand-ink: oklch(0.42 0.065 70);
+      --green: oklch(0.55 0.09 165); --green-soft: oklch(0.93 0.03 165);
+      --err: oklch(0.54 0.115 35); --err-soft: oklch(0.94 0.028 35);
+      --primary: oklch(0.25 0.035 240); --on-primary: oklch(0.975 0.006 85);
+      --shadow: 0 1px 3px oklch(0.25 0.035 240 / 0.08);
+      --pop-shadow: 0 8px 24px oklch(0.25 0.035 240 / 0.16);
+    }
+    .dark {
+      --bg: oklch(0.185 0.028 235); --surface: oklch(0.23 0.03 235); --surface2: oklch(0.278 0.032 235);
+      --ink: oklch(0.945 0.01 90); --ink2: oklch(0.73 0.018 220); --ink3: oklch(0.55 0.022 225);
+      --line: oklch(0.31 0.03 235);
+      --teal: oklch(0.73 0.085 195); --teal-soft: oklch(0.29 0.042 210);
+      --sand: oklch(0.83 0.078 82); --sand-soft: oklch(0.3 0.038 80); --sand-ink: oklch(0.87 0.055 85);
+      --green: oklch(0.72 0.095 165); --green-soft: oklch(0.28 0.04 165);
+      --err: oklch(0.7 0.105 35); --err-soft: oklch(0.3 0.045 30);
+      --primary: oklch(0.83 0.078 82); --on-primary: oklch(0.2 0.03 235);
+      --shadow: 0 1px 3px oklch(0 0 0 / 0.32);
+      --pop-shadow: 0 8px 24px oklch(0 0 0 / 0.45);
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  </style>
+</helmet>
+<div class="{{theme}}" style="width: 1440px; height: 900px; display: flex; background: var(--bg); color: var(--ink); position: relative; overflow: hidden;">
+  <div style="width: 300px; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--line); padding: 28px 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 12px 20px;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 17px; font-weight: 700;">Preset islands</span>
+        <span style="font-size: 12px; color: var(--ink3);">Admin</span>
+      </div>
+      <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--primary); color: var(--on-primary); border-radius: 10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; border-radius: 10px;">
+        <span style="font-size: 18px;">🍽️</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span style="font-size: 13.5px; font-weight: 600;">Restaurant</span>
+          <span style="font-size: 11.5px; color: var(--ink3);">A1 · 28 sentences</span>
+        </div>
+        <span style="width: 8px; height: 8px; background: var(--green); border-radius: 99px;"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; border-radius: 10px;">
+        <span style="font-size: 18px;">🚕</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span style="font-size: 13.5px; font-weight: 600;">Taxi &amp; directions</span>
+          <span style="font-size: 11.5px; color: var(--ink3);">A1 · 22 sentences</span>
+        </div>
+        <span style="width: 8px; height: 8px; background: var(--green); border-radius: 99px;"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; background: var(--surface2); border-radius: 10px;">
+        <span style="font-size: 18px;">🏨</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span style="font-size: 13.5px; font-weight: 600;">Hotel check-in</span>
+          <span style="font-size: 11.5px; color: var(--ink3);">A2 · 25 sentences</span>
+        </div>
+        <span style="width: 8px; height: 8px; background: var(--green); border-radius: 99px;"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; border-radius: 10px;">
+        <span style="font-size: 18px;">🛍️</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span style="font-size: 13.5px; font-weight: 600;">Shopping</span>
+          <span style="font-size: 11.5px; color: var(--ink3);">A1 · 24 sentences</span>
+        </div>
+        <span style="width: 8px; height: 8px; background: var(--green); border-radius: 99px;"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; border-radius: 10px;">
+        <span style="font-size: 18px;">💬</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span style="font-size: 13.5px; font-weight: 600;">Small talk</span>
+          <span style="font-size: 11.5px; color: var(--ink3);">B1 · 30 sentences</span>
+        </div>
+        <span style="width: 8px; height: 8px; background: var(--green); border-radius: 99px;"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; border-radius: 10px;">
+        <span style="font-size: 18px;">🏥</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span style="font-size: 13.5px; font-weight: 600;">At the pharmacy</span>
+          <span style="font-size: 11.5px; color: var(--ink3);">B2 · 26 sentences</span>
+        </div>
+        <span style="padding: 2px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: 10.5px; font-weight: 600; color: var(--ink3);">Draft</span>
+      </div>
+    </div>
+    <div style="flex: 1;"></div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink3);">
+      <span style="width: 8px; height: 8px; background: var(--green); border-radius: 99px;"></span>
+      <span>Published</span>
+      <span style="width: 8px; height: 8px; border: 1px solid var(--ink3); border-radius: 99px; margin-left: 10px;"></span>
+      <span>Draft</span>
+    </div>
+  </div>
+  <div style="flex: 1; display: flex; flex-direction: column; padding: 36px 44px; gap: 20px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--line); border-radius: 14px; font-size: 26px;">🏨</div>
+      <div style="display: flex; align-items: center; height: 46px; min-width: 320px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 16px; font-size: 17px; font-weight: 600;">Hotel check-in</div>
+      <div style="display: flex; align-items: center; gap: 8px; height: 46px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; font-size: 14px; font-weight: 600;">
+        <span>A2</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div style="flex: 1;"></div>
+      <span style="font-size: 13px; color: var(--ink3);">Imported by 41 users</span>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 14px; font-weight: 600; color: var(--green);">Published</span>
+        <div style="width: 44px; height: 26px; background: var(--green); border-radius: 99px; position: relative;">
+          <div style="position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; background: var(--surface); border-radius: 99px;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px;">
+      <div style="font-size: 14px; color: var(--ink3); min-height: 40px;">Paste sentences — one per line. Translation and audio generate automatically.</div>
+      <div style="display: flex; justify-content: flex-end;">
+        <div style="display: flex; align-items: center; height: 40px; padding: 0 18px; background: var(--primary); color: var(--on-primary); border-radius: 10px; font-size: 13.5px; font-weight: 600;">Add &amp; generate</div>
+      </div>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);">
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 11.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ink3);">
+        <span>English</span>
+        <span>Romanian</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line);">
+        <span style="font-size: 14px;">I have a reservation under Popescu.</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px;">Am o rezervare pe numele Popescu.</span>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--green-soft); color: var(--green); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Ready</div></div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink3)"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line);">
+        <span style="font-size: 14px;">What time is breakfast?</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px;">La ce oră e micul dejun?</span>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--green-soft); color: var(--green); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Ready</div></div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink3)"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line);">
+        <span style="font-size: 14px;">The Wi-Fi isn't working.</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px;">Nu funcționează Wi-Fi-ul.</span>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--green-soft); color: var(--green); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Ready</div></div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink3)"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line);">
+        <span style="font-size: 14px;">Can I leave my luggage here?</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px;">Pot să-mi las bagajul aici?</span>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--teal-soft); color: var(--teal); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><span style="width: 6px; height: 6px; background: currentColor; border-radius: 99px; animation: pulse 1.4s infinite;"></span>Generating audio…</div></div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink3)"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line);">
+        <span style="font-size: 14px;">Could we have a late check-out?</span>
+        <div style="width: 60%; height: 14px; background: var(--surface2); border-radius: 6px;"></div>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--teal-soft); color: var(--teal); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><span style="width: 6px; height: 6px; background: currentColor; border-radius: 99px; animation: pulse 1.4s infinite;"></span>Translating…</div></div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink3)"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 180px 56px; gap: 16px; align-items: center; padding: 13px 18px;">
+        <span style="font-size: 14px;">Is breakfast included?</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px;">Micul dejun e inclus?</span>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--err-soft); color: var(--err); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><polyline points="21 3 21 8.6 15.4 8.6"></polyline></svg>Failed — Retry</div></div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink3)"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: (this.props.dark ?? false) ? 'dark' : 'light' };
+  }
+}
+</script>
+</body>
+</html>

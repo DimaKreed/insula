@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif; }
+    a { color: oklch(0.5 0.08 205); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.08 205); }
+    .light {
+      --bg: oklch(0.975 0.006 85); --surface: oklch(0.995 0.003 90); --surface2: oklch(0.942 0.01 85);
+      --ink: oklch(0.25 0.035 240); --ink2: oklch(0.46 0.025 235); --ink3: oklch(0.62 0.018 235);
+      --line: oklch(0.905 0.012 85);
+      --teal: oklch(0.5 0.08 205); --teal-soft: oklch(0.93 0.028 200);
+      --sand: oklch(0.8 0.075 80); --sand-soft: oklch(0.934 0.038 85); --sand-ink: oklch(0.42 0.065 70);
+      --green: oklch(0.55 0.09 165); --green-soft: oklch(0.93 0.03 165);
+      --err: oklch(0.54 0.115 35); --err-soft: oklch(0.94 0.028 35);
+      --primary: oklch(0.25 0.035 240); --on-primary: oklch(0.975 0.006 85);
+      --shadow: 0 1px 3px oklch(0.25 0.035 240 / 0.08);
+      --pop-shadow: 0 8px 24px oklch(0.25 0.035 240 / 0.16);
+    }
+    .dark {
+      --bg: oklch(0.185 0.028 235); --surface: oklch(0.23 0.03 235); --surface2: oklch(0.278 0.032 235);
+      --ink: oklch(0.945 0.01 90); --ink2: oklch(0.73 0.018 220); --ink3: oklch(0.55 0.022 225);
+      --line: oklch(0.31 0.03 235);
+      --teal: oklch(0.73 0.085 195); --teal-soft: oklch(0.29 0.042 210);
+      --sand: oklch(0.83 0.078 82); --sand-soft: oklch(0.3 0.038 80); --sand-ink: oklch(0.87 0.055 85);
+      --green: oklch(0.72 0.095 165); --green-soft: oklch(0.28 0.04 165);
+      --err: oklch(0.7 0.105 35); --err-soft: oklch(0.3 0.045 30);
+      --primary: oklch(0.83 0.078 82); --on-primary: oklch(0.2 0.03 235);
+      --shadow: 0 1px 3px oklch(0 0 0 / 0.32);
+      --pop-shadow: 0 8px 24px oklch(0 0 0 / 0.45);
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  </style>
+</helmet>
+<div class="{{theme}}" style="width: 390px; height: 844px; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); position: relative; overflow: hidden;">
+  <svg width="390" height="280" viewBox="0 0 390 280" fill="none" style="position: absolute; bottom: 90px; left: 0; opacity: 0.4;">
+    <path d="M-30 80C50 140 140 165 230 140s150-85 190-60" stroke="var(--line)" stroke-width="1.5"></path>
+    <path d="M-30 120C60 185 160 210 250 180s130-95 170-75" stroke="var(--line)" stroke-width="1.5"></path>
+    <path d="M-30 160C70 230 180 250 270 215s110-100 150-85" stroke="var(--line)" stroke-width="1.5"></path>
+  </svg>
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 54px 20px 10px;">
+    <div style="font-size: 15px; font-weight: 600; color: var(--ink2);">Daily review</div>
+    <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-right: -12px; color: var(--ink3);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+    </div>
+  </div>
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 0 32px; text-align: center; position: relative;">
+    <div style="width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; background: var(--teal-soft); border-radius: 99px; color: var(--teal);">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+    </div>
+    <div style="font-family: 'Newsreader', Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 500; letter-spacing: -0.3px;">Done for today.</div>
+    <div style="font-size: 15px; color: var(--ink2); line-height: 1.6;">23 cards reviewed · 4 to relearn<br>12 days of daily reviews</div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 8px 14px; background: var(--surface2); border-radius: 99px; font-size: 12.5px; color: var(--ink3);">
+      <span>Tomorrow: 18 cards due</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 24px 44px; position: relative;">
+    <div style="display: flex; align-items: center; justify-content: center; height: 54px; background: var(--primary); color: var(--on-primary); border-radius: 14px; font-size: 15px; font-weight: 600;">Back to islands</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":true,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: (this.props.dark ?? true) ? 'dark' : 'light' };
+  }
+}
+</script>
+</body>
+</html>

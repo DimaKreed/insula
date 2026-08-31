@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif; }
+    a { color: oklch(0.5 0.08 205); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.08 205); }
+    .light {
+      --bg: oklch(0.975 0.006 85); --surface: oklch(0.995 0.003 90); --surface2: oklch(0.942 0.01 85);
+      --ink: oklch(0.25 0.035 240); --ink2: oklch(0.46 0.025 235); --ink3: oklch(0.62 0.018 235);
+      --line: oklch(0.905 0.012 85);
+      --teal: oklch(0.5 0.08 205); --teal-soft: oklch(0.93 0.028 200);
+      --sand: oklch(0.8 0.075 80); --sand-soft: oklch(0.934 0.038 85); --sand-ink: oklch(0.42 0.065 70);
+      --green: oklch(0.55 0.09 165); --green-soft: oklch(0.93 0.03 165);
+      --err: oklch(0.54 0.115 35); --err-soft: oklch(0.94 0.028 35);
+      --primary: oklch(0.25 0.035 240); --on-primary: oklch(0.975 0.006 85);
+      --shadow: 0 1px 3px oklch(0.25 0.035 240 / 0.08);
+      --pop-shadow: 0 8px 24px oklch(0.25 0.035 240 / 0.16);
+    }
+    .dark {
+      --bg: oklch(0.185 0.028 235); --surface: oklch(0.23 0.03 235); --surface2: oklch(0.278 0.032 235);
+      --ink: oklch(0.945 0.01 90); --ink2: oklch(0.73 0.018 220); --ink3: oklch(0.55 0.022 225);
+      --line: oklch(0.31 0.03 235);
+      --teal: oklch(0.73 0.085 195); --teal-soft: oklch(0.29 0.042 210);
+      --sand: oklch(0.83 0.078 82); --sand-soft: oklch(0.3 0.038 80); --sand-ink: oklch(0.87 0.055 85);
+      --green: oklch(0.72 0.095 165); --green-soft: oklch(0.28 0.04 165);
+      --err: oklch(0.7 0.105 35); --err-soft: oklch(0.3 0.045 30);
+      --primary: oklch(0.83 0.078 82); --on-primary: oklch(0.2 0.03 235);
+      --shadow: 0 1px 3px oklch(0 0 0 / 0.32);
+      --pop-shadow: 0 8px 24px oklch(0 0 0 / 0.45);
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  </style>
+</helmet>
+<div class="{{theme}}" style="width: 390px; height: 844px; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); position: relative; overflow: hidden;">
+  <svg width="390" height="300" viewBox="0 0 390 300" fill="none" style="position: absolute; top: 0; left: 0; opacity: 0.55;">
+    <path d="M-30 250C50 190 140 165 230 190s150 85 190 60" stroke="var(--line)" stroke-width="1.5"></path>
+    <path d="M-30 215C60 150 160 125 250 155s130 95 170 75" stroke="var(--line)" stroke-width="1.5"></path>
+    <path d="M-30 180C70 110 180 90 270 125s110 100 150 85" stroke="var(--line)" stroke-width="1.5"></path>
+    <path d="M-30 145C80 70 200 55 290 95s90 105 130 95" stroke="var(--line)" stroke-width="1.5"></path>
+  </svg>
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 148px 32px 0; position: relative;">
+    <div style="font-family: 'Newsreader', Georgia, 'Times New Roman', serif; font-size: 46px; font-weight: 500; letter-spacing: -0.5px;">Insula</div>
+    <svg width="56" height="10" viewBox="0 0 56 10" fill="none" stroke="var(--sand)" stroke-width="2" stroke-linecap="round"><path d="M4 6c3-4 6-4 9 0s6 4 9 0 6-4 9 0 6 4 9 0 6-4 9 0"></path></svg>
+    <div style="font-size: 16px; color: var(--ink2); text-align: center;">Your daily life, in Romanian.</div>
+  </div>
+  <div style="flex: 1;"></div>
+  <div style="display: flex; flex-direction: column; gap: 14px; padding: 0 24px 24px; position: relative;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; font-size: 15px; font-weight: 600; box-shadow: var(--shadow);">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
+      <span>Continue with Google</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
+      <div style="flex: 1; height: 1px; background: var(--line);"></div>
+      <span style="font-size: 12px; color: var(--ink3);">or</span>
+      <div style="flex: 1; height: 1px; background: var(--line);"></div>
+    </div>
+    <div style="display: flex; align-items: center; height: 52px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 18px; font-size: 15px; color: var(--ink3);">you@work.com</div>
+    <div style="display: flex; align-items: center; justify-content: center; height: 52px; background: var(--primary); color: var(--on-primary); border-radius: 14px; font-size: 15px; font-weight: 600;">Send magic link</div>
+    <div style="font-size: 12.5px; color: var(--ink3); text-align: center; padding-top: 2px;">No password — we email you a sign-in link.</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: (this.props.dark ?? false) ? 'dark' : 'light' };
+  }
+}
+</script>
+</body>
+</html>

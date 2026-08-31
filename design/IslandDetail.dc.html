@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif; }
+    a { color: oklch(0.5 0.08 205); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.08 205); }
+    .light {
+      --bg: oklch(0.975 0.006 85); --surface: oklch(0.995 0.003 90); --surface2: oklch(0.942 0.01 85);
+      --ink: oklch(0.25 0.035 240); --ink2: oklch(0.46 0.025 235); --ink3: oklch(0.62 0.018 235);
+      --line: oklch(0.905 0.012 85);
+      --teal: oklch(0.5 0.08 205); --teal-soft: oklch(0.93 0.028 200);
+      --sand: oklch(0.8 0.075 80); --sand-soft: oklch(0.934 0.038 85); --sand-ink: oklch(0.42 0.065 70); --on-sand: oklch(0.28 0.05 60);
+      --green: oklch(0.55 0.09 165); --green-soft: oklch(0.93 0.03 165);
+      --err: oklch(0.54 0.115 35); --err-soft: oklch(0.94 0.028 35);
+      --primary: oklch(0.25 0.035 240); --on-primary: oklch(0.975 0.006 85);
+      --shadow: 0 1px 3px oklch(0.25 0.035 240 / 0.08);
+      --pop-shadow: 0 8px 24px oklch(0.25 0.035 240 / 0.16);
+    }
+    .dark {
+      --bg: oklch(0.185 0.028 235); --surface: oklch(0.23 0.03 235); --surface2: oklch(0.278 0.032 235);
+      --ink: oklch(0.945 0.01 90); --ink2: oklch(0.73 0.018 220); --ink3: oklch(0.55 0.022 225);
+      --line: oklch(0.31 0.03 235);
+      --teal: oklch(0.73 0.085 195); --teal-soft: oklch(0.29 0.042 210);
+      --sand: oklch(0.83 0.078 82); --sand-soft: oklch(0.3 0.038 80); --sand-ink: oklch(0.87 0.055 85); --on-sand: oklch(0.28 0.05 60);
+      --green: oklch(0.72 0.095 165); --green-soft: oklch(0.28 0.04 165);
+      --err: oklch(0.7 0.105 35); --err-soft: oklch(0.3 0.045 30);
+      --primary: oklch(0.83 0.078 82); --on-primary: oklch(0.2 0.03 235);
+      --shadow: 0 1px 3px oklch(0 0 0 / 0.32);
+      --pop-shadow: 0 8px 24px oklch(0 0 0 / 0.45);
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  </style>
+</helmet>
+<div class="{{theme}}" style="width: 390px; height: 844px; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); position: relative; overflow: hidden;">
+  <div style="display: flex; align-items: center; gap: 10px; padding: 54px 20px 12px;">
+    <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-left: -12px; color: var(--ink2);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">💼</span>
+        <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.3px;">Work</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink3);">
+        <span>42 sentences · 40 with audio</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m8.5 12.5 2.5 2.5 4.5-5"></path></svg>
+        <span style="color: var(--teal); font-weight: 600;">Offline</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7px; height: 44px; padding: 0 16px; background: var(--teal-soft); color: var(--teal); border-radius: 12px; font-size: 14px; font-weight: 600;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="7 4.5 20 12 7 19.5 7 4.5"></polygon></svg>
+      <span>Play</span>
+    </div>
+  </div>
+  <div style="margin: 4px 20px 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 12px; box-shadow: var(--shadow);">
+    <div style="font-size: 15px; color: var(--ink3); line-height: 1.5; min-height: 44px;">Add sentences — one per line</div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>
+      <span style="flex: 1; font-size: 12px; color: var(--ink3);">Tip: use your keyboard's mic to dictate</span>
+      <div style="display: flex; align-items: center; height: 40px; padding: 0 16px; background: var(--primary); color: var(--on-primary); border-radius: 11px; font-size: 13.5px; font-weight: 600;">Add &amp; translate</div>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 8px;">
+    <span style="font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink3);">Sentences</span>
+    <span style="font-size: 12px; color: var(--ink3);">newest first</span>
+  </div>
+  <div style="flex: 1; margin: 0 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow);">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line);">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 13px; color: var(--ink3);">The deadline moved again.</div>
+        <div style="width: 62%; height: 14px; background: var(--surface2); border-radius: 6px; margin: 3px 0;"></div>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--teal-soft); color: var(--teal); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><span style="width: 6px; height: 6px; background: currentColor; border-radius: 99px; animation: pulse 1.4s infinite;"></span>Translating…</div></div>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3); opacity: 0.4;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="7 4.5 20 12 7 19.5 7 4.5"></polygon></svg>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line);">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 13px; color: var(--ink3);">Let's circle back on this next week.</div>
+        <div style="font-family: 'Newsreader', Georgia, serif; font-size: 16.5px; line-height: 1.35;">Revenim la asta săptămâna viitoare.</div>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--teal-soft); color: var(--teal); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><span style="width: 6px; height: 6px; background: currentColor; border-radius: 99px; animation: pulse 1.4s infinite;"></span>Generating audio…</div></div>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3); opacity: 0.4;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="7 4.5 20 12 7 19.5 7 4.5"></polygon></svg>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line);">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 13px; color: var(--ink3);">Ping me when the build is green.</div>
+        <div style="font-size: 14px; color: var(--ink3);">—</div>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--err-soft); color: var(--err); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><polyline points="21 3 21 8.6 15.4 8.6"></polyline></svg>Failed — Retry</div></div>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3); opacity: 0.4;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="7 4.5 20 12 7 19.5 7 4.5"></polygon></svg>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--surface2);">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 13px; color: var(--ink3);">I'm running five minutes late.</div>
+        <div style="font-family: 'Newsreader', Georgia, serif; font-size: 16.5px; line-height: 1.35;">Întârzii cinci minute.</div>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--green-soft); color: var(--green); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Ready</div></div>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--teal);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="7 4.5 20 12 7 19.5 7 4.5"></polygon></svg>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px;">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 13px; color: var(--ink3);">Can we move the meeting to tomorrow?</div>
+        <div style="font-family: 'Newsreader', Georgia, serif; font-size: 16.5px; line-height: 1.35;">Putem muta ședința pe mâine?</div>
+        <div style="display: flex;"><div style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: var(--green-soft); color: var(--green); border-radius: 99px; font-size: 11.5px; font-weight: 600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Ready</div></div>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--teal);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="7 4.5 20 12 7 19.5 7 4.5"></polygon></svg>
+      </div>
+      <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      </div>
+    </div>
+  </div>
+  <div style="position: absolute; top: 610px; right: 26px; width: 200px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--pop-shadow); overflow: hidden; z-index: 5;">
+    <div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; font-size: 14px; font-weight: 500;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>
+      <span>Edit sentence</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; font-size: 14px; font-weight: 500; border-top: 1px solid var(--line);">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="9" y1="5" x2="9" y2="19"></line><line x1="15" y1="5" x2="15" y2="19"></line></svg>
+      <span>Suspend from review</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; font-size: 14px; font-weight: 500; border-top: 1px solid var(--line); color: var(--err);">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
+      <span>Delete</span>
+    </div>
+  </div>
+  <div style="display: flex; align-items: stretch; border-top: 1px solid var(--line); background: var(--surface); padding: 8px 8px 20px; margin-top: 14px;">
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: var(--teal);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15c0-4 2.2-7 5-7s5 3 5 7"></path><path d="M3 19c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0 3 1.3 4.5 0"></path></svg>
+      <span style="font-size: 10.5px; font-weight: 600;">Islands</span>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: var(--ink3);">
+      <div style="position: relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        <div style="position: absolute; top: -5px; right: -12px; background: var(--sand); color: var(--on-sand); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 99px;">23</div>
+      </div>
+      <span style="font-size: 10.5px; font-weight: 500;">Review</span>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: var(--ink3);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5"></path><path d="m3 13 9 5 9-5"></path></svg>
+      <span style="font-size: 10.5px; font-weight: 500;">Presets</span>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: var(--ink3);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
+      <span style="font-size: 10.5px; font-weight: 500;">Transcripts</span>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: var(--ink3);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line><line x1="18" y1="4" x2="18" y2="20"></line><line x1="4" y1="9" x2="8" y2="9"></line><line x1="10" y1="15" x2="14" y2="15"></line><line x1="16" y1="7" x2="20" y2="7"></line></svg>
+      <span style="font-size: 10.5px; font-weight: 500;">Settings</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: (this.props.dark ?? false) ? 'dark' : 'light' };
+  }
+}
+</script>
+</body>
+</html>

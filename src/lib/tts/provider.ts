@@ -1,0 +1,68 @@
+/**
+ * Provider-agnostic TTS contract.
+ *
+ * Every adapter emits the same canonical format so that Phase 4 can compile a
+ * playlist track by byte-concatenating MP3 segments (see Implementation Plan
+ * section 2.2): MP3, mono, constant bitrate. 44.1 kHz is the target sample rate;
+ * where a provider cannot offer it, the adapter documents what it emits instead.
+ * Segments concatenated into one track must all come from the same provider and
+ * voice, which the audio_assets content hash already guarantees.
+ */
+
+export type TtsProviderName = 'elevenlabs' | 'google' | 'azure' | 'openai';
+
+export interface SynthesizeInput {
+  text: string;
+  /** BCP-47 language tag, e.g. 'ro-RO'. */
+  lang: string;
+  voiceId: string;
+}
+
+export interface SynthesizeResult {
+  audio: Buffer;
+  format: 'mp3';
+  /** Only set when the provider reports it; otherwise derived downstream. */
+  durationMs?: number;
+  charCount: number;
+}
+
+export interface Voice {
+  id: string;
+  label: string;
+  /** BCP-47 language tag this voice is intended for. */
+  lang: string;
+}
+
+export type ConfigCheck = { ok: true } | { ok: false; missing: string[] };
+
+export interface TtsProvider {
+  readonly name: TtsProviderName;
+  /**
+   * Which env vars are missing, if any. Never throws — an unconfigured provider
+   * must not break the ones that are configured.
+   */
+  isConfigured(): ConfigCheck;
+  /** Suggested voices for the bake-off and for settings UI. */
+  voices(): Voice[];
+  synthesize(input: SynthesizeInput): Promise<SynthesizeResult>;
+}
+
+/** Adapters call this at the top of synthesize() to fail with a clear message. */
+export function assertConfigured(provider: TtsProvider): void {
+  const check = provider.isConfigured();
+  if (!check.ok) {
+    throw new Error(
+      `TTS provider "${provider.name}" is not configured — set ${check.missing.join(', ')} in .env.local`,
+    );
+  }
+}
+
+export function requestFailed(
+  provider: TtsProviderName,
+  status: number,
+  body: string,
+): Error {
+  return new Error(
+    `${provider} TTS request failed (HTTP ${status}): ${body.slice(0, 500)}`,
+  );
+}

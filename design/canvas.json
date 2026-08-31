@@ -1,0 +1,28 @@
+{
+  "artboards": [
+    { "file": "Login.dc.html", "x": 0, "y": 0, "w": 390, "h": 844 },
+    { "file": "HomeEmpty.dc.html", "x": 470, "y": 0, "w": 390, "h": 844, "title": "Islands Home — first run" },
+    { "file": "Main.dc.html", "x": 940, "y": 0, "w": 390, "h": 844, "title": "Islands Home" },
+    { "file": "IslandDetail.dc.html", "x": 1410, "y": 0, "w": 390, "h": 844 },
+    { "file": "Player.dc.html", "x": 0, "y": 944, "w": 390, "h": 844 },
+    { "file": "ReviewPrompt.dc.html", "x": 470, "y": 944, "w": 390, "h": 844 },
+    { "file": "ReviewReveal.dc.html", "x": 940, "y": 944, "w": 390, "h": 844 },
+    { "file": "ReviewDone.dc.html", "x": 1410, "y": 944, "w": 390, "h": 844 },
+    { "file": "Presets.dc.html", "x": 0, "y": 1888, "w": 390, "h": 844 },
+    { "file": "PresetDetail.dc.html", "x": 470, "y": 1888, "w": 390, "h": 844 },
+    { "file": "TranscriptPaste.dc.html", "x": 940, "y": 1888, "w": 390, "h": 844 },
+    { "file": "TranscriptAnalyzing.dc.html", "x": 1410, "y": 1888, "w": 390, "h": 844 },
+    { "file": "TranscriptResults.dc.html", "x": 1880, "y": 1888, "w": 390, "h": 844 },
+    { "file": "Settings.dc.html", "x": 2350, "y": 1888, "w": 390, "h": 844 },
+    { "file": "HomeDesktop.dc.html", "x": 0, "y": 2832, "w": 1440, "h": 900, "title": "Islands Home — desktop 1440" },
+    { "file": "AdminBuilder.dc.html", "x": 1520, "y": 2832, "w": 1440, "h": 900, "title": "Admin — preset builder" }
+  ],
+  "annotations": [
+    { "id": "note-intro", "x": -340, "y": 0, "w": 300, "text": "Insula — UI spec, EN→RO MVP.\n\nEvery artboard has a Light/Dark tweak (chip above the frame). Player and Review default to dark — commute and evening contexts.\n\nRomanian text is always set in the serif (Newsreader); UI runs in Schibsted Grotesk." },
+    { "id": "note-flow-onboarding", "x": 0, "y": -130, "w": 620, "text": "Onboarding & Home — login, first-run empty state (teaches the method in 3 lines), islands list with due-reviews banner, island detail with the capture → translate → audio pipeline." },
+    { "id": "note-flow-commute", "x": 0, "y": 814, "w": 620, "text": "Commute & Review — dark by default. Player: transport controls in the bottom half, mode switcher, shadow-gap stepper. Review: FSRS grades with projected intervals, bottom-anchored." },
+    { "id": "note-flow-content", "x": 0, "y": 1758, "w": 620, "text": "Content — presets gallery with level badges and one-tap import, transcript wizard (paste → analyzing → study list), settings with plan usage meters. Preset detail shows the not-yet-imported state; after import the CTA becomes 'Open island' with an Imported badge (see the gallery's Restaurant row)." },
+    { "id": "note-flow-desktop", "x": 0, "y": 2702, "w": 620, "text": "Desktop & Admin — responsive Islands Home at 1440 (sidebar nav replaces the tab bar), admin preset builder with per-row pipeline statuses and publish toggle." }
+  ],
+  "launch": { "view": "canvas" }
+}
