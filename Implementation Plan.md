@@ -18,7 +18,8 @@ Mobile-first PWA implementing the language-islands method (see [[README]]). Prod
 | Auth | Auth.js v5: Google OAuth + Resend email magic link, Drizzle adapter, JWT sessions with `role`/`tier` in token | Product requirement; Resend doubles as transactional email |
 | Object storage | Cloudflare R2 via `@aws-sdk/client-s3`, public bucket behind custom domain, keys = content hashes | Zero egress fees — audio is replayed on repeat, bandwidth dominates cost |
 | Background jobs | Upstash QStash | HTTP-push queue calling back into Next.js route handlers with retries + DLQ + signatures; no worker infra; free tier covers MVP; fan-out sidesteps Vercel timeouts |
-| AI | `@anthropic-ai/sdk`: `claude-sonnet-5` for translation + transcript pass 2; `claude-haiku-4-5` for lemmatization pass 1 | Quality where it matters, 3× cheaper model for the mechanical pass; structured outputs with zod, `effort: "low"` on mechanical calls, prompt caching on the system prompt |
+| Translation | Pluggable `TranslationProvider` adapter (`src/lib/translate/`): **`gemini`** default, `claude` selectable via `TRANSLATION_PROVIDER` | Gemini's free Flash tier removes the need for a paid key; the adapter mirrors `TtsProvider` so switching back to Claude (~$0.10–0.30 per 500 sentences, better notes, no training on input) is one env var. Both share one prompt so output stays comparable |
+| AI (transcripts, Phase 6) | `@anthropic-ai/sdk`: `claude-sonnet-5` pass 2, `claude-haiku-4-5` pass 1 | Quality where it matters, 3× cheaper model for the mechanical pass; structured outputs with zod, `effort: "low"` on mechanical calls, prompt caching |
 | TTS | Pluggable `TtsProvider` adapter: ElevenLabs / Google / Azure / OpenAI, chosen by `TTS_PROVIDER` env | [[TTS Bake-off]] decides the default; swap is one env var |
 | SRS | `ts-fsrs` | Maintained FSRS-5/6 implementation; ships the exact Card/ReviewLog types we persist |
 | PWA | Serwist (`@serwist/next`) | Maintained Workbox successor to abandoned next-pwa, App Router support |
@@ -53,7 +54,8 @@ src/
       islands/[id]/playlist/route.ts     # JSON manifest for player + offline download
   actions/                               # server actions, one file per domain
   db/schema.ts, db/index.ts, db/queries/ # Drizzle schema, client, data-access layer
-  lib/ai/    (anthropic.ts, translate.ts, transcript.ts, prompts.ts)
+  lib/ai/        (anthropic.ts, prompts.ts, transcript.ts)   # shared prompt + Claude client
+  lib/translate/ (provider.ts, gemini.ts, claude.ts, index.ts)
   lib/tts/   (provider.ts, elevenlabs.ts, google.ts, azure.ts, openai.ts, index.ts)
   lib/srs/fsrs.ts
   lib/storage/r2.ts
@@ -327,8 +329,9 @@ Rough total: **7–9 weeks solo part-time** for a senior developer.
 2. **Quotas** (code constants per tier per month, enforced pre-enqueue against `usage_monthly`): free — 500 translated sentences, 25k new TTS chars (dedup hits are free), 5 transcript analyses (≤20k chars each); pro — ~5×. Admin exempt. Hitting a cap yields a clear UI message, never a silent failure.
 3. **Cheap-model routing:** Haiku for lemmatization; Sonnet only where quality matters; `effort: "low"` on mechanical calls; Anthropic Batches API (50% off) for admin preset bulk generation.
 4. **Prompt caching:** stable ≥1024-token system prompt (translation style guide + few-shot examples) with `cache_control`, volatile sentences after the breakpoint; verify via `usage.cache_read_input_tokens` in `usage_events`.
-5. **Order of magnitude:** per sentence ≈ $0.001 translation + $0.001–0.002 TTS (Google/Azure) or ~$0.01–0.02 (ElevenLabs). A maxed-out free user ≈ **under $1/month** on Google/Azure, ~$5–10 on ElevenLabs — the bake-off choice is also a pricing decision.
-6. **Egress:** R2 zero-egress + service-worker CacheFirst (audio fetched roughly once per device) makes replay free.
+5. **Free-tier translation:** with `TRANSLATION_PROVIDER=gemini` translation costs nothing (`cost_micros: 0`), but quotas still count sentences — a runaway capture is still capped. Gemini's free tier limits requests per day, not tokens, so the adapter batches 20 sentences per call (≈10k sentences/day at 500 RPD), against Claude's 10.
+6. **Order of magnitude:** per sentence ≈ $0.001 translation + $0.001–0.002 TTS (Google/Azure) or ~$0.01–0.02 (ElevenLabs). A maxed-out free user ≈ **under $1/month** on Google/Azure, ~$5–10 on ElevenLabs — the bake-off choice is also a pricing decision.
+7. **Egress:** R2 zero-egress + service-worker CacheFirst (audio fetched roughly once per device) makes replay free.
 
 ## 8. Risks & mitigations
 
@@ -342,9 +345,27 @@ Rough total: **7–9 weeks solo part-time** for a senior developer.
 | Neon cold start / connection limits | `@neondatabase/serverless` HTTP driver (no pool exhaustion), short per-request queries |
 | Magic-link deliverability | Resend with verified domain from day one; Google OAuth as primary path |
 | Service-worker cache eviction offline | Installed-app exemption + `storage.persist()` + graceful "re-download" prompt on cache miss |
+| Gemini free tier trains on input | Accepted deliberately: the method means narrating personal life, and Google states free-tier content may improve its products. `TRANSLATION_PROVIDER=claude` (Anthropic does not train on API data) is a one-line switch if that stops being acceptable |
+| Free-tier translation quota exhausted mid-capture | Batch failures mark only their own rows `error` with a per-row Retry; the rest of the capture still lands |
 | Romanian TTS quality unknown | Exactly what Phase 0's bake-off de-risks, before any pipeline depends on a provider |
 | FSRS params generic, not personal | `review_logs` stores full ReviewLog from day one → future per-user optimizer run possible without data loss |
 | Signup abuse burning AI quota | Quotas from first request; verified email (OAuth/magic-link inherently verifies); @upstash/ratelimit on capture/transcript actions |
+
+## 8a. Starter content (no API cost)
+
+Preset content is generated in a Claude Code session instead of through a paid
+endpoint, then loaded straight into an account:
+
+1. `/romanian-islands <topic>` — the skill at `.claude/skills/romanian-islands/SKILL.md`
+   generates 20 EN→RO sentences with lemmas and notes, self-checks them, and writes
+   `seed/{slug}.json`.
+2. `npm run db:seed -- --user=<email>` — `scripts/seed-islands.ts` validates each file
+   and inserts islands + sentences as `status: 'translated'`, `origin: 'preset_import'`,
+   also warming `translation_cache`. Idempotent by island name, so re-runs only add what
+   is new. `--dry-run` previews.
+3. Phase 5 converts the same `seed/*.json` files into shared preset islands.
+
+Driver prompt for all 12 starter topics: `Prompt — Seed 12 Islands.md`.
 
 ## 9. Libraries (consolidated)
 
@@ -357,7 +378,10 @@ DATABASE_URL=                 # Neon
 AUTH_SECRET=                  # Auth.js
 AUTH_GOOGLE_ID= / AUTH_GOOGLE_SECRET=
 RESEND_API_KEY=               # magic-link email
-ANTHROPIC_API_KEY=
+TRANSLATION_PROVIDER=         # gemini | claude (default gemini)
+GEMINI_API_KEY=               # free tier: https://aistudio.google.com/apikey
+GEMINI_MODEL=                 # optional override; default gemini-3.5-flash
+ANTHROPIC_API_KEY=            # only when TRANSLATION_PROVIDER=claude
 TTS_PROVIDER=                 # elevenlabs | google | azure | openai (bake-off decides default)
 ELEVENLABS_API_KEY=
 GOOGLE_TTS_CREDENTIALS=       # service-account JSON (base64)

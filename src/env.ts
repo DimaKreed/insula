@@ -18,8 +18,15 @@ const schema = z.object({
   AUTH_GOOGLE_ID: z.string().min(1).optional(),
   AUTH_GOOGLE_SECRET: z.string().min(1).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
+  /** Verified sender for the magic-link email, e.g. 'Insula <login@example.com>'. */
+  AUTH_EMAIL_FROM: z.string().min(1).optional(),
 
-  // AI
+  // Translation
+  /** Which provider translates. Defaults to gemini (free tier) when unset. */
+  TRANSLATION_PROVIDER: z.enum(['gemini', 'claude']).optional(),
+  GEMINI_API_KEY: z.string().min(1).optional(),
+  /** Overrides the adapter's default free-tier Flash model. */
+  GEMINI_MODEL: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
 
   // TTS
@@ -50,7 +57,15 @@ const schema = z.object({
   NEXT_PUBLIC_APP_URL: z.url().optional(),
 });
 
-const parsed = schema.safeParse(process.env);
+/**
+ * A key present but blank in .env.local (the shape .env.example is copied in
+ * with) means "not configured", not "configured as an empty string".
+ */
+const provided = Object.fromEntries(
+  Object.entries(process.env).filter(([, value]) => value !== ''),
+);
+
+const parsed = schema.safeParse(provided);
 
 if (!parsed.success) {
   const issues = parsed.error.issues

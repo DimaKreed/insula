@@ -22,6 +22,7 @@ tags: [румунська/додаток, проект]
 - [[TTS Bake-off]] — how the Romanian TTS provider gets chosen (Phase 0); decision record
 - [[Prompt — Claude Design]] — self-contained prompt for Claude Design to produce the UI
 - [[Prompt — Claude Code]] — kickoff prompt for the Claude Code implementation session (Phase 0)
+- [[Prompt — Seed 12 Islands]] — drives the `romanian-islands` skill over the 12 starter topics, then seeds them
 - [UI design — Claude Design canvas](https://claude.ai/code/artifact/43bd08cf-e20c-4c2c-9901-3eb9deefdff9) — 16 artboards: Login, HomeEmpty, Main, IslandDetail, Player, ReviewPrompt/Reveal/Done, Presets, PresetDetail, TranscriptPaste/Analyzing/Results, Settings, HomeDesktop, AdminBuilder
 
 ## Status / next steps
@@ -29,7 +30,11 @@ tags: [румунська/додаток, проект]
 - [x] UI design generated → [Claude Design canvas](https://claude.ai/code/artifact/43bd08cf-e20c-4c2c-9901-3eb9deefdff9) (2026-08-20)
 - [x] Phase 0: scaffold + bake-off script (2026-08-31)
 - [x] TTS decision: **Azure (Free F0)**, native ro-RO voices — details in [[TTS Bake-off]] (2026-08-31)
-- [ ] Implement Phases 1–7 per [[Implementation Plan]] → next: Phase 1 (Auth + capture + translation)
+- [x] Phase 1: auth + capture + translation (2026-08-31)
+- [x] Translation moved behind an adapter; default **Gemini free tier** (2026-08-31)
+- [ ] Get a free Gemini key → https://aistudio.google.com/apikey → `GEMINI_API_KEY` in `.env.local`, then `npm run translate:smoke`
+- [ ] Generate the 12 starter islands → [[Prompt — Seed 12 Islands]]
+- [ ] Implement Phases 2–7 per [[Implementation Plan]] → next: Phase 2 (TTS pipeline + player + PWA)
 
 ## Obsidian note
 
@@ -54,6 +59,8 @@ npm run dev                  # http://localhost:3000
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run bakeoff` | TTS bake-off (Phase 0) |
+| `npm run translate:smoke` | Translate 3 fixed sentences with the configured provider |
+| `npm run db:seed -- --user=<email>` | Load `seed/*.json` islands into an account |
 | `npm run db:generate` / `db:migrate` | Drizzle migrations (needs `DATABASE_URL`) |
 
 CI (`.github/workflows/ci.yml`) runs typecheck + lint on every push.
@@ -102,3 +109,36 @@ the target, but only ElevenLabs offers it natively — Google's v1 MP3 is 32 kbp
 Azure caps at 48 kHz, and OpenAI's rate is fixed and undocumented. Each adapter
 documents its own deviation; concatenation is unaffected because segments always
 share one provider and voice.
+
+### Translation provider
+
+Translation runs behind an adapter (`src/lib/translate/`), selected by
+`TRANSLATION_PROVIDER`:
+
+| Provider | Cost | Notes |
+|---|---|---|
+| `gemini` (default) | free | Flash tier, no card. Google may use free-tier content to improve its products |
+| `claude` | ~$0.10–0.30 / 500 sentences | Best notes and lemmas; Anthropic does not train on API data |
+
+Both share one prompt (`src/lib/ai/prompts.ts`), so output stays comparable. The
+provider is part of the `translation_cache` key — switching re-translates rather
+than serving the other provider's output. Verify a provider end-to-end with
+`npm run translate:smoke`.
+
+### Content generation (no API cost)
+
+Starter island content is generated in a Claude Code session, not through a paid
+endpoint:
+
+```bash
+# in a session started in this folder:
+/romanian-islands Restaurant & café     # → seed/restaurant-cafe.json (20 sentences)
+
+npm run db:seed -- --user=you@example.com --dry-run
+npm run db:seed -- --user=you@example.com
+```
+
+The skill lives at `.claude/skills/romanian-islands/SKILL.md`. Seeding is
+idempotent by island name, so re-runs only add what is new. `seed/*.json` stays
+the source of truth — Phase 5 converts the same files into shared preset islands.
+For all 12 starter topics at once, use [[Prompt — Seed 12 Islands]].
