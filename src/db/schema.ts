@@ -3,23 +3,28 @@ import { relations, sql } from 'drizzle-orm';
 import {
   bigint,
   bigserial,
+  boolean,
   index,
   integer,
   jsonb,
   pgTable,
   primaryKey,
+  real,
+  smallint,
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
 import type { AdapterAccountType } from 'next-auth/adapters';
+import type { ReviewLog } from 'ts-fsrs';
 
 /** cuid2 primary keys, generated in the app (Implementation Plan section 3). */
 const id = () => text('id').primaryKey().$defaultFn(() => createId());
 
 /**
- * Drizzle schema — Phases 1–2 slice of Implementation Plan section 3: Auth.js
- * tables, islands, sentences, the global translation cache, audio assets and
- * usage accounting. SRS, presets and transcripts arrive with their phases.
+ * Drizzle schema — Phases 1–3 slice of Implementation Plan section 3: Auth.js
+ * tables, islands, sentences, the global translation cache, audio assets, usage
+ * accounting and the SRS tables. Presets and transcripts arrive with their
+ * phases.
  */
 
 const createdAt = () =>
@@ -184,6 +189,80 @@ export const translationCache = pgTable('translation_cache', {
   createdAt: createdAt(),
 });
 
+// --- SRS -------------------------------------------------------------------
+
+/**
+ * One row per sentence, holding a ts-fsrs `Card` verbatim: every field of the
+ * library's own type has a column, so a card round-trips through Postgres
+ * without a translation layer that could drift from the algorithm. `extra`
+ * catches any field a future ts-fsrs adds — the state survives the upgrade even
+ * before a migration gives it a column of its own.
+ */
+export const reviewStates = pgTable(
+  'review_states',
+  {
+    sentenceId: text('sentence_id')
+      .primaryKey()
+      .references(() => sentences.id, { onDelete: 'cascade' }),
+    // Denormalized like sentences.user_id: the due query never joins to find it.
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    due: timestamp('due', { withTimezone: true, mode: 'date' }).notNull(),
+    stability: real('stability').notNull(),
+    difficulty: real('difficulty').notNull(),
+    /** Deprecated in ts-fsrs 6, still part of the Card in 5.x. */
+    elapsedDays: integer('elapsed_days').notNull().default(0),
+    scheduledDays: integer('scheduled_days').notNull().default(0),
+    /** Position in the (re)learning steps ladder — a ts-fsrs 5 Card field. */
+    learningSteps: integer('learning_steps').notNull().default(0),
+    reps: integer('reps').notNull().default(0),
+    lapses: integer('lapses').notNull().default(0),
+    /** 0 New, 1 Learning, 2 Review, 3 Relearning — the ts-fsrs `State` enum. */
+    state: smallint('state').notNull().default(0),
+    lastReview: timestamp('last_review', { withTimezone: true, mode: 'date' }),
+    extra: jsonb('extra')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    suspended: boolean('suspended').notNull().default(false),
+  },
+  (t) => [index('review_states_user_due_idx').on(t.userId, t.due)],
+);
+
+/** A ts-fsrs `ReviewLog` after the trip through JSON — Dates become ISO strings. */
+export type SerializedReviewLog = Omit<ReviewLog, 'due' | 'review'> & {
+  due: string;
+  review: string;
+};
+
+/**
+ * Every grade ever given, with the full ts-fsrs `ReviewLog` kept verbatim.
+ * Nothing in the app reads `fsrs_log` back; it exists so a future per-user FSRS
+ * optimizer run has the complete history to fit against (section 8's risk log).
+ */
+export const reviewLogs = pgTable(
+  'review_logs',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    sentenceId: text('sentence_id')
+      .notNull()
+      .references(() => sentences.id, { onDelete: 'cascade' }),
+    /** 1 again .. 4 easy — the ts-fsrs `Rating` enum, minus Manual. */
+    rating: smallint('rating').notNull(),
+    fsrsLog: jsonb('fsrs_log').$type<SerializedReviewLog>().notNull(),
+    /** Prompt to grade, measured on the client. */
+    durationMs: integer('duration_ms'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index('review_logs_user_reviewed_idx').on(t.userId, t.reviewedAt)],
+);
+
 // --- Usage accounting ------------------------------------------------------
 
 export const usageEvents = pgTable(
@@ -244,9 +323,15 @@ export const sentencesRelations = relations(sentences, ({ one }) => ({
     fields: [sentences.targetAudioId],
     references: [audioAssets.id],
   }),
+  reviewState: one(reviewStates, {
+    fields: [sentences.id],
+    references: [reviewStates.sentenceId],
+  }),
 }));
 
 export type AudioAsset = typeof audioAssets.$inferSelect;
 export type Island = typeof islands.$inferSelect;
+export type ReviewLogRow = typeof reviewLogs.$inferSelect;
+export type ReviewState = typeof reviewStates.$inferSelect;
 export type Sentence = typeof sentences.$inferSelect;
 export type User = typeof users.$inferSelect;

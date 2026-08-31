@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { requireUser, type SessionUser } from '@/auth';
 import { getDb } from '@/db';
 import { getIsland } from '@/db/queries/islands';
+import { createReviewStates } from '@/db/queries/review';
 import {
   cacheTranslations,
   findCachedTranslations,
@@ -89,6 +90,14 @@ export async function captureSentences(
           : { status: 'translating' as const }),
       };
     }),
+  );
+
+  // Every sentence gets its FSRS card up front, in state New: `review_states`
+  // is 1:1 with `sentences`, and the daily queue reads it rather than diffing.
+  await createReviewStates(
+    user.id,
+    rows.map((row) => row.id),
+    new Date(),
   );
 
   const toTranslate = rows.filter((row) => !cached.has(row.hash));

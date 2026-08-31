@@ -15,6 +15,13 @@
       "when": 1788209557055,
       "tag": "0001_phase2_audio_assets",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788215005468,
+      "tag": "0002_phase3_srs",
+      "breakpoints": true
     }
   ]
 }

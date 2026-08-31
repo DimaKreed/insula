@@ -15,12 +15,12 @@ import {
 /**
  * The design ships two nav shapes for the same five destinations: a bottom tab
  * bar on mobile and a 248px sidebar at desktop width (HomeDesktop artboard).
- * Only Islands exists in Phase 1 — the rest render inert rather than lying
- * about where they lead.
+ * Only the destinations that exist are links — the rest render inert rather
+ * than lying about where they lead.
  */
 const TABS = [
   { href: '/islands', label: 'Islands', Icon: IslandsIcon, live: true },
-  { href: '/review', label: 'Review', Icon: ReviewIcon, live: false },
+  { href: '/review', label: 'Review', Icon: ReviewIcon, live: true },
   { href: '/presets', label: 'Presets', Icon: PresetsIcon, live: false },
   {
     href: '/transcripts',

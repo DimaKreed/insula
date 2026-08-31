@@ -24,7 +24,7 @@ Mobile-first PWA implementing the language-islands method (see [[README]]). Prod
 | SRS | `ts-fsrs` | Maintained FSRS-5/6 implementation; ships the exact Card/ReviewLog types we persist |
 | PWA | Serwist (`@serwist/next`) | Maintained Workbox successor to abandoned next-pwa, App Router support |
 | UI | Tailwind v4 + shadcn/ui, lucide icons, sonner toasts | Sensible defaults, fast to build |
-| Client state | Zustand (player + review session); TanStack Query (status polling only) | Everything else stays in server components + server actions |
+| Client state | Plain React state in the player and the review session; **Zustand not adopted** — neither screen shares state with anything outside itself, so a store would only add indirection. TanStack Query (status polling only) | Everything else stays in server components + server actions |
 
 ## 2. Architecture overview
 
@@ -139,6 +139,7 @@ review_states (                            -- 1:1 with sentence (sentences are p
   user_id text FK -> users,
   due timestamptz, stability real, difficulty real,   -- ts-fsrs Card fields 1:1
   elapsed_days int, scheduled_days int, reps int, lapses int,
+  learning_steps int,                      -- ts-fsrs 5 Card field, not in the original sketch
   state smallint,                          -- 0 New, 1 Learning, 2 Review, 3 Relearning
   last_review timestamptz NULL,
   extra jsonb DEFAULT '{}',                -- spillover for future ts-fsrs additions
@@ -245,7 +246,12 @@ Why this shape: QStash gives at-least-once delivery + retries so a Vercel timeou
 
 ### 4.2 SRS session
 
-Server component loads the queue: `review_states WHERE user_id=? AND due<=now() AND NOT suspended ORDER BY due LIMIT 200`, topped up with new cards up to the daily new limit (default 15) — only `status='ready'` sentences. Client session (Zustand): show EN → user speaks RO aloud → tap to reveal RO text + play audio → 4 grade buttons showing ts-fsrs projected intervals → server action `gradeReview` runs `fsrs.next(card, now, rating)`, persists `review_states` + `review_logs`; client advances optimistically. Reviews require network in MVP (offline review queueing = explicit non-goal, noted for later).
+Server component loads the queue: `review_states WHERE user_id=? AND state<>New AND due<=now() AND NOT suspended ORDER BY due LIMIT 200`, topped up with new cards up to the daily new limit (`users.settings.newCardsPerDay`, default 15) — only `status='ready'` sentences in unarchived islands. Client session: show EN → user speaks RO aloud → tap to reveal RO text + play audio → 4 grade buttons showing ts-fsrs projected intervals → server action `gradeReview` runs `fsrs.next(card, now, rating)`, persists `review_states` + `review_logs`; client advances optimistically. Reviews require network in MVP (offline review queueing = explicit non-goal, noted for later).
+
+Two details settled in the build:
+
+- **The four intervals are previewed on the server**, with `fsrs.repeat`, and shipped as strings on each queue card — the session screen never imports ts-fsrs, so the algorithm stays out of the client bundle. Fuzz makes a previewed interval differ from the scheduled one by a few percent, the same approximation every FSRS client makes.
+- **How many new cards today's session may still introduce is counted out of `review_logs`**: a log's `state` is the card's state *before* the grade, so rows with `state = New` since the user's local midnight are exactly today's first-time cards. No per-day counter to keep in sync, and `users.timezone` draws the boundary (`src/lib/srs/daily.ts`), like `yearMonth` does for quota periods.
 
 ### 4.3 Player modes
 
@@ -287,7 +293,7 @@ The SQL diff between passes is deliberate: Claude reliably extracts lemmas but u
 | `captureSentences(islandId, lines[])` | Insert + cache-check + enqueue translation |
 | `editSentence / deleteSentence / retrySentence` | Edit re-runs pipeline only if hash changed |
 | `gradeReview(sentenceId, rating, durationMs)` | FSRS transition + log |
-| `suspendSentence(sentenceId)` | Remove from SRS without deleting |
+| `suspendSentence(sentenceId)` | Remove from SRS without deleting. **Deferred** — the column and the queue filter exist, the action arrives with the UI that needs it |
 | `importPresetIsland(presetId)` | Clone preset into user collection |
 | `requestRecallAudio(islandId)` | Lazily enqueue EN prompt TTS for Recall mode |
 | `requestPlaylistTrack(islandId, mode)` | Enqueue compiled-track build if manifest hash stale |
@@ -315,7 +321,7 @@ The SQL diff between passes is deliberate: Claude reliably extracts lemmas but u
 | **0 — Bootstrap + TTS bake-off** | create-next-app (TS strict), Tailwind 4 + shadcn, Drizzle + Neon, zod-validated env, Vercel project, CI (typecheck+lint); `scripts/tts-bakeoff.ts`: defines `TtsProvider` interface, implements all 4 adapters, synthesizes 3 fixed RO sentences × provider × 1–2 voices into `bakeoff-output/` + static A/B `index.html`. Decision recorded in [[TTS Bake-off]] | Provider decided; adapters already written | S (2–3 days) |
 | **1 — Auth + capture + translation** | Auth.js (Google + magic link), schema migration, island/sentence CRUD, capture UI, Claude translation (synchronous in server action, ≤10/batch, defers QStash), translation_cache, usage_events | Capture EN sentences, see RO translations | M (~1 wk) |
 | **2 — TTS pipeline + player + PWA** | Storage adapter (`local` first), `audio_assets` table + content-hash dedup, TTS on capture via `after()`, **backfill script for the 241 existing sentences**, status polling, player (Listen / Loop-one / Shadow), Serwist PWA shell, offline island download, Media Session. No new accounts | Method Steps 1+2 work; installable; offline commute listening | L (1.5–2 wks) |
-| **3 — SRS** | ts-fsrs integration, review session UI, daily queue + new-card limits, streak/stats, review_logs | Step 3: daily active-recall sessions | M (~1 wk) |
+| **3 — SRS** | ts-fsrs integration behind `src/lib/srs/`, `review_states` created at capture + **backfill script for the 242 existing sentences**, review session UI, daily queue + new-card limits, streak/stats view, review_logs | Step 3: daily active-recall sessions | M (~1 wk) |
 | **4 — Shadowing polish + iOS hardening** | Recall mode (lazy EN audio), compiled playlist tracks, `storage.persist()`, real-device QA (iOS Safari PWA, Android Chrome) | Lock-screen-reliable commute playback | M (~1 wk) |
 | **5 — Admin presets** | Admin route group + gate, preset builder (pipeline reuse), publish, browse/preview/import | Curated starter islands, one-tap import | S–M (3–5 days) |
 | **6 — Pre-input comprehension** | Two-pass transcript analysis, study-list UI, vocab marking, add-to-island | All 4 method features = MVP complete | M (~1 wk) |

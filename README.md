@@ -23,6 +23,7 @@ tags: [румунська/додаток, проект]
 - [[Prompt — Claude Design]] — self-contained prompt for Claude Design to produce the UI
 - [[Prompt — Claude Code]] — kickoff prompt for the Claude Code implementation session (Phase 0)
 - [[Prompt — Seed 12 Islands]] — drives the `romanian-islands` skill over the 12 starter topics, then seeds them
+- [[Prompt — Next Phases]] — session prompts for Phases 3–7
 - [UI design — Claude Design canvas](https://claude.ai/code/artifact/43bd08cf-e20c-4c2c-9901-3eb9deefdff9) — 16 artboards: Login, HomeEmpty, Main, IslandDetail, Player, ReviewPrompt/Reveal/Done, Presets, PresetDetail, TranscriptPaste/Analyzing/Results, Settings, HomeDesktop, AdminBuilder
 
 ## Status / next steps

@@ -220,6 +220,33 @@ export function DownloadIcon(p: Props) {
   );
 }
 
+export function SpeakerIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <polygon points="11 5 6 9 3 9 3 15 6 15 11 19 11 5" fill="currentColor" />
+      <path d="M15 9a4 4 0 0 1 0 6" />
+      <path d="M17.5 6.5a8 8 0 0 1 0 11" />
+    </Svg>
+  );
+}
+
+export function CloseIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <line x1="6" y1="6" x2="18" y2="18" />
+      <line x1="18" y1="6" x2="6" y2="18" />
+    </Svg>
+  );
+}
+
+export function FlameIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M12 2c1 4-3 5-3 8a3 3 0 0 0 6 0c0-1-.4-2-1-2.6 2.5 1.3 4 3.7 4 6.1a6 6 0 0 1-12 0C6 9.5 9 6 12 2Z" />
+    </Svg>
+  );
+}
+
 export function ChevronDownIcon(p: Props) {
   return (
     <Svg {...p}>
