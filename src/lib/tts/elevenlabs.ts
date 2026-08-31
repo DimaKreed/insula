@@ -1,5 +1,6 @@
 import {
   assertConfigured,
+  fetchRetrying,
   requestFailed,
   type ConfigCheck,
   type SynthesizeInput,
@@ -23,6 +24,8 @@ const OUTPUT_FORMAT = 'mp3_44100_128';
 
 export const elevenlabs: TtsProvider = {
   name: 'elevenlabs',
+  // Creator tier ≈ $22 per 100k characters.
+  costMicrosPerChar: 220,
 
   isConfigured(): ConfigCheck {
     return process.env.ELEVENLABS_API_KEY
@@ -45,7 +48,7 @@ export const elevenlabs: TtsProvider = {
     );
     url.searchParams.set('output_format', OUTPUT_FORMAT);
 
-    const res = await fetch(url, {
+    const res = await fetchRetrying(url, {
       method: 'POST',
       headers: {
         'xi-api-key': process.env.ELEVENLABS_API_KEY!,

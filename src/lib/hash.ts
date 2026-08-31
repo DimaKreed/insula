@@ -37,3 +37,21 @@ export function translationHash(
     provider,
   ]);
 }
+
+/**
+ * Key for `audio_assets` and for the object-storage key itself.
+ *
+ * Provider and voice are part of it because `audio_assets` is global: two
+ * users' identical sentences share one file only when they would have produced
+ * byte-identical audio. Format is included so a change of the canonical output
+ * format re-synthesizes rather than serving the old encoding.
+ */
+export function audioHash(
+  provider: string,
+  voiceId: string,
+  lang: string,
+  text: string,
+  format: string,
+): string {
+  return sha256([provider, voiceId, lang, normalizeText(text), format]);
+}

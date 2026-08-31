@@ -68,3 +68,43 @@ export async function recordTranslationUsage(u: TranslationUsage) {
       },
     });
 }
+
+export interface TtsUsage {
+  userId: string;
+  yearMonth: string;
+  provider: string;
+  voiceId: string;
+  chars: number;
+  costMicros: number;
+  refId: string;
+}
+
+/** Records one synthesis and bumps the month's character count. */
+export async function recordTtsUsage(u: TtsUsage) {
+  const db = getDb();
+  await db.insert(usageEvents).values({
+    userId: u.userId,
+    kind: 'tts',
+    provider: u.provider,
+    model: u.voiceId,
+    ttsChars: u.chars,
+    costMicros: u.costMicros,
+    refId: u.refId,
+  });
+
+  await db
+    .insert(usageMonthly)
+    .values({
+      userId: u.userId,
+      yearMonth: u.yearMonth,
+      ttsChars: u.chars,
+      costMicros: u.costMicros,
+    })
+    .onConflictDoUpdate({
+      target: [usageMonthly.userId, usageMonthly.yearMonth],
+      set: {
+        ttsChars: sql`${usageMonthly.ttsChars} + ${u.chars}`,
+        costMicros: sql`${usageMonthly.costMicros} + ${u.costMicros}`,
+      },
+    });
+}

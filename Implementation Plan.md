@@ -16,8 +16,8 @@ Mobile-first PWA implementing the language-islands method (see [[README]]). Prod
 | Database | Neon serverless Postgres | HTTP driver built for Vercel functions; DB branching pairs with preview deploys; we don't need Supabase's bundled auth/storage |
 | ORM | Drizzle (drizzle-orm + drizzle-kit) | SQL-first API for a Postgres-fluent dev, no codegen binary, smallest serverless footprint, first-class Neon + Auth.js adapters |
 | Auth | Auth.js v5: Google OAuth + Resend email magic link, Drizzle adapter, JWT sessions with `role`/`tier` in token | Product requirement; Resend doubles as transactional email |
-| Object storage | Cloudflare R2 via `@aws-sdk/client-s3`, public bucket behind custom domain, keys = content hashes | Zero egress fees — audio is replayed on repeat, bandwidth dominates cost |
-| Background jobs | Upstash QStash | HTTP-push queue calling back into Next.js route handlers with retries + DLQ + signatures; no worker infra; free tier covers MVP; fan-out sidesteps Vercel timeouts |
+| Object storage | Pluggable `Storage` adapter (`src/lib/storage/`): **`local`** default (writes `public/audio/`), **`r2`** for deploy. Keys = content hashes either way | Local needs no account and is enough while developing; Vercel's filesystem is ephemeral and read-only, so R2 becomes mandatory **before the first deploy**. R2 over S3/Vercel Blob for zero egress fees — audio is replayed on repeat, so bandwidth dominates cost |
+| Background jobs | **`after()` from `next/server`** for capture-time TTS + a local backfill script; **QStash deferred** until deploy/multi-user | `after()` runs work after the response is sent, so nobody waits on a spinner, with no extra service to run. A queue earns its place when retries, fan-out past the function timeout, and other users' load are real — none of which is true for a single local user. Kept behind one `enqueue` seam so QStash slots in without touching call sites |
 | Translation | Pluggable `TranslationProvider` adapter (`src/lib/translate/`): **`gemini`** default, `claude` selectable via `TRANSLATION_PROVIDER` | Gemini's free Flash tier removes the need for a paid key; the adapter mirrors `TtsProvider` so switching back to Claude (~$0.10–0.30 per 500 sentences, better notes, no training on input) is one env var. Both share one prompt so output stays comparable |
 | AI (transcripts, Phase 6) | `@anthropic-ai/sdk`: `claude-sonnet-5` pass 2, `claude-haiku-4-5` pass 1 | Quality where it matters, 3× cheaper model for the mechanical pass; structured outputs with zod, `effort: "low"` on mechanical calls, prompt caching |
 | TTS | Pluggable `TtsProvider` adapter: ElevenLabs / Google / Azure / OpenAI, chosen by `TTS_PROVIDER` env | [[TTS Bake-off]] decides the default; swap is one env var |
@@ -314,7 +314,7 @@ The SQL diff between passes is deliberate: Claude reliably extracts lemmas but u
 |---|---|---|---|
 | **0 — Bootstrap + TTS bake-off** | create-next-app (TS strict), Tailwind 4 + shadcn, Drizzle + Neon, zod-validated env, Vercel project, CI (typecheck+lint); `scripts/tts-bakeoff.ts`: defines `TtsProvider` interface, implements all 4 adapters, synthesizes 3 fixed RO sentences × provider × 1–2 voices into `bakeoff-output/` + static A/B `index.html`. Decision recorded in [[TTS Bake-off]] | Provider decided; adapters already written | S (2–3 days) |
 | **1 — Auth + capture + translation** | Auth.js (Google + magic link), schema migration, island/sentence CRUD, capture UI, Claude translation (synchronous in server action, ≤10/batch, defers QStash), translation_cache, usage_events | Capture EN sentences, see RO translations | M (~1 wk) |
-| **2 — TTS pipeline + player + PWA** | R2 wiring, QStash jobs (translation goes async too), audio dedup, status polling, player (Listen / Loop-one / Shadow), Serwist PWA shell, offline island download, Media Session | Method Steps 1+2 work; installable; offline commute listening | L (1.5–2 wks) |
+| **2 — TTS pipeline + player + PWA** | Storage adapter (`local` first), `audio_assets` table + content-hash dedup, TTS on capture via `after()`, **backfill script for the 241 existing sentences**, status polling, player (Listen / Loop-one / Shadow), Serwist PWA shell, offline island download, Media Session. No new accounts | Method Steps 1+2 work; installable; offline commute listening | L (1.5–2 wks) |
 | **3 — SRS** | ts-fsrs integration, review session UI, daily queue + new-card limits, streak/stats, review_logs | Step 3: daily active-recall sessions | M (~1 wk) |
 | **4 — Shadowing polish + iOS hardening** | Recall mode (lazy EN audio), compiled playlist tracks, `storage.persist()`, real-device QA (iOS Safari PWA, Android Chrome) | Lock-screen-reliable commute playback | M (~1 wk) |
 | **5 — Admin presets** | Admin route group + gate, preset builder (pipeline reuse), publish, browse/preview/import | Curated starter islands, one-tap import | S–M (3–5 days) |
@@ -338,6 +338,7 @@ Rough total: **7–9 weeks solo part-time** for a senior developer.
 | Risk | Mitigation |
 |---|---|
 | iOS PWA background audio stops / won't auto-advance | Single persistent audio element, src-swap in `ended` handler, no Web Audio; compiled single-file playlist tracks as the primary commute mode; documented as a platform limit in-app |
+| Local audio does not survive a deploy | Deliberate: `STORAGE_PROVIDER=local` is a development choice. R2 must be configured before the first Vercel deploy, and the adapter makes that an env change plus a one-off re-upload of `public/audio/` |
 | Vercel function timeouts on batch jobs | QStash fan-out (per-sentence TTS), ≤25-sentence Claude batches, `maxDuration=300` on job routes (assume Vercel Pro at launch) |
 | TTS cost blow-up (esp. ElevenLabs) | Hard per-user char quotas pre-enqueue, global audio dedup, 250-char sentence cap, provider swap = one env var |
 | Claude structured-output drift / bad JSON | `messages.parse()` + zod schema, one retry on parse failure, `status='error'` + Retry button as the floor; `prompt_version` in cache keys so prompt iterations don't serve stale cache |
@@ -387,8 +388,9 @@ ELEVENLABS_API_KEY=
 GOOGLE_TTS_CREDENTIALS=       # service-account JSON (base64)
 AZURE_SPEECH_KEY= / AZURE_SPEECH_REGION=
 OPENAI_API_KEY=
-R2_ACCOUNT_ID= / R2_ACCESS_KEY_ID= / R2_SECRET_ACCESS_KEY= / R2_BUCKET= / R2_PUBLIC_URL=
-QSTASH_TOKEN= / QSTASH_CURRENT_SIGNING_KEY= / QSTASH_NEXT_SIGNING_KEY=
+STORAGE_PROVIDER=             # local | r2 (default local)
+R2_ACCOUNT_ID= / R2_ACCESS_KEY_ID= / R2_SECRET_ACCESS_KEY= / R2_BUCKET= / R2_PUBLIC_URL=   # before first deploy
+QSTASH_TOKEN= / QSTASH_CURRENT_SIGNING_KEY= / QSTASH_NEXT_SIGNING_KEY=                     # deferred: only when a queue is introduced
 UPSTASH_REDIS_REST_URL= / UPSTASH_REDIS_REST_TOKEN=   # rate limiting (Phase 7)
 NEXT_PUBLIC_APP_URL=
 ```

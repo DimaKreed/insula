@@ -38,6 +38,11 @@ export type ConfigCheck = { ok: true } | { ok: false; missing: string[] };
 export interface TtsProvider {
   readonly name: TtsProviderName;
   /**
+   * Micro-dollars per character on the tier we use, for `usage_events`.
+   * Mirrors `TranslationBatchResult.costMicros`: 0 where a free tier covers us.
+   */
+  readonly costMicrosPerChar: number;
+  /**
    * Which env vars are missing, if any. Never throws — an unconfigured provider
    * must not break the ones that are configured.
    */
@@ -54,6 +59,33 @@ export function assertConfigured(provider: TtsProvider): void {
     throw new Error(
       `TTS provider "${provider.name}" is not configured — set ${check.missing.join(', ')} in .env.local`,
     );
+  }
+}
+
+/**
+ * fetch that rides out throttling and transient server errors.
+ *
+ * Free tiers are the reason this exists: Azure's F0 caps neural synthesis at
+ * roughly 20 requests a minute and answers the 21st with 429, which must not
+ * become a failed sentence. `Retry-After` is honoured when the provider sends
+ * one; otherwise the wait doubles from a second, with jitter so parallel
+ * workers do not resynchronize into the next burst.
+ */
+export async function fetchRetrying(
+  input: string | URL,
+  init: RequestInit,
+  attempts = 6,
+): Promise<Response> {
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(input, init);
+    if (res.ok || attempt >= attempts) return res;
+    if (res.status !== 429 && res.status < 500) return res;
+
+    const retryAfter = Number(res.headers.get('retry-after'));
+    const wait = Number.isFinite(retryAfter) && retryAfter > 0
+      ? retryAfter * 1000
+      : 2 ** (attempt - 1) * 1000 + Math.random() * 500;
+    await new Promise((resolve) => setTimeout(resolve, wait));
   }
 }
 

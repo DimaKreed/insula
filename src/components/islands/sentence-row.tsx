@@ -11,18 +11,21 @@ import {
 import {
   CheckIcon,
   MoreIcon,
+  PauseIcon,
   PencilIcon,
+  PlayIcon,
   RetryIcon,
   TrashIcon,
 } from '@/components/icons';
-import type { Sentence } from '@/db/schema';
+import { getAudioElement } from '@/lib/audio-element';
+import type { SentenceWithAudio } from '@/db/queries/sentences';
 
 function StatusBadge({
   sentence,
   onRetry,
   busy,
 }: {
-  sentence: Sentence;
+  sentence: SentenceWithAudio;
   onRetry: () => void;
   busy: boolean;
 }) {
@@ -44,14 +47,17 @@ function StatusBadge({
     );
   }
 
-  if (sentence.status === 'translated' || sentence.status === 'ready') {
+  if (sentence.audioUrl) {
     return (
       <span className={`${base} bg-green-soft text-green`}>
         <CheckIcon size={11} />
-        Translated
+        Ready
       </span>
     );
   }
+
+  // Translated but not yet voiced: the second half of the pipeline is running.
+  const label = sentence.targetText ? 'Generating audio…' : 'Translating…';
 
   return (
     <span className={`${base} bg-teal-soft text-teal`}>
@@ -59,12 +65,68 @@ function StatusBadge({
         className="size-1.5 rounded-full bg-current"
         style={{ animation: 'insula-pulse 1.4s infinite' }}
       />
-      {sentence.status === 'pending' ? 'Queued' : 'Translating…'}
+      {sentence.status === 'pending' ? 'Queued' : label}
     </span>
   );
 }
 
-export function SentenceRow({ sentence }: { sentence: Sentence }) {
+/** Tap-to-hear preview, on the app's one shared audio element. */
+function PreviewButton({ sentence }: { sentence: SentenceWithAudio }) {
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    if (!playing) return;
+    const audio = getAudioElement();
+    const stop = () => setPlaying(false);
+    audio.addEventListener('ended', stop);
+    audio.addEventListener('pause', stop);
+    return () => {
+      audio.removeEventListener('ended', stop);
+      audio.removeEventListener('pause', stop);
+    };
+  }, [playing]);
+
+  if (!sentence.audioUrl) {
+    return (
+      <span
+        aria-hidden
+        className="flex size-10 shrink-0 items-center justify-center text-ink3 opacity-40"
+      >
+        <PlayIcon size={17} />
+      </span>
+    );
+  }
+
+  function toggle() {
+    const audio = getAudioElement();
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+      return;
+    }
+    if (audio.src !== new URL(sentence.audioUrl!, location.href).href) {
+      audio.src = sentence.audioUrl!;
+    }
+    audio.currentTime = 0;
+    audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => toast.error('Could not play this audio.'));
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={playing ? 'Pause' : 'Play in Romanian'}
+      className="flex size-10 shrink-0 items-center justify-center text-teal"
+    >
+      {playing ? <PauseIcon size={17} /> : <PlayIcon size={17} />}
+    </button>
+  );
+}
+
+export function SentenceRow({ sentence }: { sentence: SentenceWithAudio }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(sentence.sourceText);
@@ -158,6 +220,8 @@ export function SentenceRow({ sentence }: { sentence: Sentence }) {
           />
         </div>
       </div>
+
+      <PreviewButton sentence={sentence} />
 
       <div ref={menu} className="relative">
         <button

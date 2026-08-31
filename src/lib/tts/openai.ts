@@ -1,5 +1,6 @@
 import {
   assertConfigured,
+  fetchRetrying,
   requestFailed,
   type ConfigCheck,
   type SynthesizeInput,
@@ -28,6 +29,8 @@ const INSTRUCTIONS: Record<string, string> = {
 
 export const openai: TtsProvider = {
   name: 'openai',
+  // gpt-4o-mini-tts list price ≈ $15 per 1M characters.
+  costMicrosPerChar: 15,
 
   isConfigured(): ConfigCheck {
     return process.env.OPENAI_API_KEY
@@ -45,7 +48,7 @@ export const openai: TtsProvider = {
   async synthesize(input: SynthesizeInput): Promise<SynthesizeResult> {
     assertConfigured(openai);
 
-    const res = await fetch('https://api.openai.com/v1/audio/speech', {
+    const res = await fetchRetrying('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
         authorization: `Bearer ${process.env.OPENAI_API_KEY}`,

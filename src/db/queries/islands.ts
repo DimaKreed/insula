@@ -12,6 +12,8 @@ import { islands, sentences, type Island } from '@/db/schema';
 export interface IslandListItem extends Island {
   sentenceCount: number;
   translatedCount: number;
+  /** Sentences with Romanian audio — what the player and offline download use. */
+  audioCount: number;
 }
 
 export async function listIslands(userId: string): Promise<IslandListItem[]> {
@@ -21,6 +23,7 @@ export async function listIslands(userId: string): Promise<IslandListItem[]> {
       island: islands,
       sentenceCount: count(sentences.id),
       translatedCount: sql<number>`count(${sentences.id}) filter (where ${sentences.targetText} is not null)`,
+      audioCount: sql<number>`count(${sentences.id}) filter (where ${sentences.targetAudioId} is not null)`,
     })
     .from(islands)
     .leftJoin(sentences, eq(sentences.islandId, islands.id))
@@ -32,6 +35,7 @@ export async function listIslands(userId: string): Promise<IslandListItem[]> {
     ...r.island,
     sentenceCount: Number(r.sentenceCount),
     translatedCount: Number(r.translatedCount),
+    audioCount: Number(r.audioCount),
   }));
 }
 

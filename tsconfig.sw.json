@@ -1,0 +1,20 @@
+{
+  "$comment": "The service worker runs in a worker scope, whose globals conflict with the DOM lib the app uses \u2014 so it gets its own config and its own typecheck pass.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "webworker"
+    ],
+    "types": [
+      "@serwist/next/typings"
+    ],
+    "incremental": false
+  },
+  "include": [
+    "src/sw.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

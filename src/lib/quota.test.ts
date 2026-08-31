@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   PLAN_LIMITS,
   checkSentenceQuota,
+  checkTtsQuota,
   limitsFor,
   yearMonth,
 } from './quota';
@@ -70,5 +71,26 @@ describe('yearMonth', () => {
     const instant = new Date('2026-09-01T03:30:00Z');
     expect(yearMonth(instant, 'UTC')).toBe('2026-09');
     expect(yearMonth(instant, 'America/New_York')).toBe('2026-08');
+  });
+});
+
+describe('checkTtsQuota', () => {
+  const free = PLAN_LIMITS.free;
+
+  it('allows a sentence that fits the remaining characters', () => {
+    expect(checkTtsQuota(free, free.ttsChars - 100, 40).allowed).toBe(true);
+  });
+
+  it('refuses one that does not, and says how much is left', () => {
+    const check = checkTtsQuota(free, free.ttsChars - 10, 40);
+    expect(check.allowed).toBe(false);
+    if (!check.allowed) {
+      expect(check.remaining).toBe(10);
+      expect(check.message).toContain('40');
+    }
+  });
+
+  it('exempts admins, who have no limits object', () => {
+    expect(checkTtsQuota(null, 10_000_000, 250).allowed).toBe(true);
   });
 });

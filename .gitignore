@@ -37,6 +37,14 @@ yarn-error.log*
 # TTS bake-off artifacts (Phase 0)
 /bakeoff-output/
 
+# Audio written by STORAGE_PROVIDER=local (Phase 2). Regenerate with
+# `npm run audio:backfill`; R2 holds it once deployed.
+/public/audio/
+
+# Serwist output
+/public/sw.js
+/public/sw.js.map
+
 # vercel
 .vercel
 

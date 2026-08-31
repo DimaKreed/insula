@@ -31,13 +31,17 @@ const schema = z.object({
 
   // TTS
   TTS_PROVIDER: z.enum(['elevenlabs', 'google', 'azure', 'openai']).optional(),
+  /** Voice id override; otherwise the adapter's first voice for the language. */
+  TTS_VOICE: z.string().min(1).optional(),
   ELEVENLABS_API_KEY: z.string().min(1).optional(),
   GOOGLE_TTS_CREDENTIALS: z.string().min(1).optional(),
   AZURE_SPEECH_KEY: z.string().min(1).optional(),
   AZURE_SPEECH_REGION: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
 
-  // Object storage (Cloudflare R2)
+  // Object storage
+  /** Where audio is written: local (public/audio/) | r2. Default local. */
+  STORAGE_PROVIDER: z.enum(['local', 'r2']).optional(),
   R2_ACCOUNT_ID: z.string().min(1).optional(),
   R2_ACCESS_KEY_ID: z.string().min(1).optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),

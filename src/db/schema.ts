@@ -17,9 +17,9 @@ import type { AdapterAccountType } from 'next-auth/adapters';
 const id = () => text('id').primaryKey().$defaultFn(() => createId());
 
 /**
- * Drizzle schema — Phase 1 slice of Implementation Plan section 3: Auth.js
- * tables, islands, sentences, the global translation cache and usage
- * accounting. Audio, SRS, presets and transcripts arrive with their phases.
+ * Drizzle schema — Phases 1–2 slice of Implementation Plan section 3: Auth.js
+ * tables, islands, sentences, the global translation cache, audio assets and
+ * usage accounting. SRS, presets and transcripts arrive with their phases.
  */
 
 const createdAt = () =>
@@ -106,6 +106,26 @@ export const islands = pgTable(
   (t) => [index('islands_user_idx').on(t.userId)],
 );
 
+/**
+ * Global across users — identical text in the same voice is synthesized once.
+ * `content_hash` is the storage key too, so the object store dedups with it.
+ */
+export const audioAssets = pgTable('audio_assets', {
+  id: id(),
+  contentHash: text('content_hash').notNull().unique(),
+  provider: text('provider').notNull(),
+  voiceId: text('voice_id').notNull(),
+  lang: text('lang').notNull(),
+  /** Where the object lives inside the storage provider, e.g. 'audio/<hash>.mp3'. */
+  storageKey: text('storage_key').notNull(),
+  /** Public URL to play from; relative ('/audio/x.mp3') for the local provider. */
+  url: text('url').notNull(),
+  durationMs: integer('duration_ms'),
+  charCount: integer('char_count').notNull(),
+  byteSize: integer('byte_size').notNull(),
+  createdAt: createdAt(),
+});
+
 export const SENTENCE_STATUSES = [
   'pending',
   'translating',
@@ -135,6 +155,14 @@ export const sentences = pgTable(
     status: text('status').$type<SentenceStatus>().notNull().default('pending'),
     errorMessage: text('error_message'),
     contentHash: text('content_hash').notNull(),
+    /** Romanian audio. Set once TTS has run; the shared asset may predate this row. */
+    targetAudioId: text('target_audio_id').references(() => audioAssets.id, {
+      onDelete: 'set null',
+    }),
+    /** English prompt audio, generated lazily for Recall mode (Phase 4). */
+    promptAudioId: text('prompt_audio_id').references(() => audioAssets.id, {
+      onDelete: 'set null',
+    }),
     origin: text('origin').notNull().default('user'), // user|preset_import|transcript
     position: integer('position').notNull().default(0),
     createdAt: createdAt(),
@@ -212,8 +240,13 @@ export const sentencesRelations = relations(sentences, ({ one }) => ({
     fields: [sentences.islandId],
     references: [islands.id],
   }),
+  targetAudio: one(audioAssets, {
+    fields: [sentences.targetAudioId],
+    references: [audioAssets.id],
+  }),
 }));
 
+export type AudioAsset = typeof audioAssets.$inferSelect;
 export type Island = typeof islands.$inferSelect;
 export type Sentence = typeof sentences.$inferSelect;
 export type User = typeof users.$inferSelect;

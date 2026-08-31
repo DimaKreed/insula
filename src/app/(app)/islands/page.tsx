@@ -1,31 +1,52 @@
 import Link from 'next/link';
 
 import { requireUser } from '@/auth';
-import { listIslands, type IslandListItem } from '@/db/queries/islands';
+import { PlayIcon } from '@/components/icons';
+import { DownloadButton } from '@/components/islands/download-button';
 import { NewIsland } from '@/components/islands/new-island';
+import { listIslands, type IslandListItem } from '@/db/queries/islands';
 
 export const metadata = { title: 'Islands · Insula' };
 
+/**
+ * The island card from the Main artboard: the row itself opens the island, and
+ * the two round buttons play it and save it for offline. They sit beside the
+ * link rather than inside it — a button nested in an anchor is invalid markup
+ * and taps land unpredictably on mobile.
+ */
 function IslandRow({ island }: { island: IslandListItem }) {
   return (
-    <Link
-      href={`/islands/${island.id}`}
-      className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 shadow-card transition-colors hover:bg-surface2"
-    >
-      <div className="flex size-11 items-center justify-center rounded-xl bg-surface2 text-[22px]">
-        {island.emoji ?? '🏝️'}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="truncate text-base font-semibold">{island.name}</div>
-        <div className="text-[13px] text-ink3">
-          {island.sentenceCount === 0
-            ? 'No sentences yet'
-            : `${island.sentenceCount} ${
-                island.sentenceCount === 1 ? 'sentence' : 'sentences'
-              } · ${island.translatedCount} translated`}
+    <li className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 shadow-card">
+      <Link
+        href={`/islands/${island.id}`}
+        className="flex min-w-0 flex-1 items-center gap-3"
+      >
+        <div className="flex size-11 items-center justify-center rounded-xl bg-surface2 text-[22px]">
+          {island.emoji ?? '🏝️'}
         </div>
-      </div>
-    </Link>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="truncate text-base font-semibold">{island.name}</div>
+          <div className="text-[13px] text-ink3">
+            {island.sentenceCount === 0
+              ? 'No sentences yet'
+              : `${island.sentenceCount} ${
+                  island.sentenceCount === 1 ? 'sentence' : 'sentences'
+                } · ${island.audioCount} with audio`}
+          </div>
+        </div>
+      </Link>
+
+      {island.audioCount > 0 ? (
+        <Link
+          href={`/player/${island.id}`}
+          aria-label={`Play ${island.name}`}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full border border-line text-ink2 transition-colors hover:bg-surface2"
+        >
+          <PlayIcon size={18} />
+        </Link>
+      ) : null}
+      <DownloadButton islandId={island.id} audioCount={island.audioCount} />
+    </li>
   );
 }
 
@@ -110,11 +131,11 @@ export default async function IslandsPage() {
         </h1>
       </div>
 
-      <div className="flex flex-col gap-2.5 px-5 lg:grid lg:grid-cols-3 lg:gap-5 lg:px-0">
+      <ul className="flex flex-col gap-2.5 px-5 lg:grid lg:grid-cols-3 lg:gap-5 lg:px-0">
         {islands.map((island) => (
           <IslandRow key={island.id} island={island} />
         ))}
-      </div>
+      </ul>
 
       <NewIsland variant="fab" />
     </main>

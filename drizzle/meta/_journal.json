@@ -8,6 +8,13 @@
       "when": 1788204312199,
       "tag": "0000_phase1_auth_islands_sentences",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788209557055,
+      "tag": "0001_phase2_audio_assets",
+      "breakpoints": true
     }
   ]
 }

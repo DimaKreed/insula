@@ -32,9 +32,11 @@ tags: [румунська/додаток, проект]
 - [x] TTS decision: **Azure (Free F0)**, native ro-RO voices — details in [[TTS Bake-off]] (2026-08-31)
 - [x] Phase 1: auth + capture + translation (2026-08-31)
 - [x] Translation moved behind an adapter; default **Gemini free tier** (2026-08-31)
-- [ ] Get a free Gemini key → https://aistudio.google.com/apikey → `GEMINI_API_KEY` in `.env.local`, then `npm run translate:smoke`
-- [ ] Generate the 12 starter islands → [[Prompt — Seed 12 Islands]]
-- [ ] Implement Phases 2–7 per [[Implementation Plan]] → next: Phase 2 (TTS pipeline + player + PWA)
+- [x] 12 starter islands generated and seeded — 241 sentences (2026-08-31)
+- [x] Phase 2: TTS pipeline, storage adapter, player, PWA + offline download (2026-09-01)
+- [x] Audio backfilled for all 241 seeded sentences — Azure F0, free (2026-09-01)
+- [ ] Real-device pass: install the PWA on iOS + Android, download an island, listen offline
+- [ ] Implement Phases 3–7 per [[Implementation Plan]] → next: Phase 3 (SRS)
 
 ## Obsidian note
 
@@ -55,12 +57,13 @@ npm run dev                  # http://localhost:3000
 
 | Script | Does |
 |---|---|
-| `npm run dev` / `build` / `start` | Next.js (dev uses webpack — see Troubleshooting) |
+| `npm run dev` / `build` / `start` | Next.js (dev uses webpack — see Troubleshooting). `build` also builds the service worker |
 | `npm run dev:turbo` | Next.js dev with Turbopack (needs the native SWC binary) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run bakeoff` | TTS bake-off (Phase 0) |
 | `npm run translate:smoke` | Translate 3 fixed sentences with the configured provider |
+| `npm run audio:backfill` | Generate audio for translated sentences that have none |
 | `npm run db:seed -- --user=<email>` | Load `seed/*.json` islands into an account |
 | `npm run db:generate` / `db:migrate` | Drizzle migrations (needs `DATABASE_URL`) |
 
@@ -144,6 +147,94 @@ idempotent by island name, so re-runs only add what is new. `seed/*.json` stays
 the source of truth — Phase 5 converts the same files into shared preset islands.
 For all 12 starter topics at once, use [[Prompt — Seed 12 Islands]].
 
+### Audio pipeline (Phase 2)
+
+Capture now runs the whole way: text → translation → audio. Translation still
+happens inside the server action (the caller waits for the Romanian), while TTS
+runs afterwards as background work, so the action returns as soon as the text
+exists and the island page polls the rows to **Ready**.
+
+```
+captureSentences  → translate (inline)  → startAudio()
+                                          ↳ enqueue('tts', …)  ← src/lib/enqueue.ts
+                                             ↳ synthesizeSentences()  ← src/lib/audio/tts.ts
+```
+
+- **Background work** is `after()` from `next/server`, behind the single
+  `enqueue` seam in `src/lib/enqueue.ts`. No queue service runs; QStash slots in
+  there later without touching call sites. Trade-off: `after()` is best-effort,
+  so a crashed job leaves rows non-terminal — the per-row **Retry** button and
+  `npm run audio:backfill` both pick them up.
+- **Never pay twice.** `audio_assets` is global and keyed by
+  `sha256(provider|voice|lang|normalized text|format)`, which is also the
+  storage key. Identical Romanian in two islands (or two accounts) is
+  synthesized once and linked twice, billing 0 characters the second time.
+- **Quotas** count characters actually sent to the provider (`usage_events`,
+  `usage_monthly`); dedup hits and retries cost nothing.
+- **Duration** is read from the MP3's own frame header (`src/lib/audio/mp3.ts`) —
+  the canonical CBR format makes it arithmetic, no decoder needed. The player
+  uses it to size Shadow-mode gaps before any audio has loaded.
+
+Backfill is how the 241 seeded sentences got their audio, and how anything that
+fails gets a second run. It is idempotent — sentences with audio stop matching:
+
+```bash
+npm run audio:backfill -- --dry-run          # what would be synthesized
+npm run audio:backfill                       # everything still missing audio
+npm run audio:backfill -- --island=<id> --limit=20 --concurrency=2
+```
+
+### Object storage
+
+Audio is written through an adapter (`src/lib/storage/`), selected by
+`STORAGE_PROVIDER`:
+
+| Provider | Writes to | Notes |
+|---|---|---|
+| `local` (default) | `public/audio/<hash>.mp3`, served by Next | No account, no config. Git-ignored |
+| `r2` | Cloudflare R2 over its S3 API | **Required before the first deploy** — Vercel's filesystem is read-only and ephemeral |
+
+Switching is an env change plus a one-off upload of `public/audio/` to the
+bucket; keys are content hashes either way, so nothing else moves.
+
+### TTS voice and throttling
+
+`TTS_VOICE` pins the voice; unset, the adapter's first voice for the language
+wins (Azure: `ro-RO-AlinaNeural`). Azure's **free F0 tier** allows roughly 20
+neural requests a minute and answers the rest with HTTP 429, so every adapter
+now goes through `fetchRetrying`, which honours `Retry-After` and otherwise
+backs off exponentially. A full 241-sentence backfill takes a few minutes on F0
+and costs nothing — the whole corpus is ~7k characters against a 500k monthly
+free allowance.
+
+### PWA and offline listening
+
+- **Service worker:** Serwist in *configurator mode* — `src/sw.ts` is bundled by
+  `serwist build` (see `serwist.config.mjs`) as a step after `next build`, not by
+  a webpack plugin. The plugin route breaks the Next 15.5 build: it drops
+  `pages/_error` from `.next/build-manifest.json` and every production route
+  then returns a bare 500. Configurator mode never touches the Next build.
+- **Caching:** the app shell is precached; `/audio/*.mp3` uses CacheFirst in an
+  `audio-v1` cache with `RangeRequestsPlugin` — audio elements issue `Range`
+  requests, and Safari fails outright on a cached response that ignores them.
+- **Download island** (`src/lib/offline.ts`) stores the playlist manifest and
+  every audio file in a per-island `island-{id}` cache and calls
+  `navigator.storage.persist()`. The manifest's presence in that cache *is* the
+  record that the island was downloaded — there is no second store to keep in
+  sync.
+- **The service worker is disabled in development** (`npm run dev`), where a
+  cache over a recompiling app only produces confusing staleness. To try
+  offline listening, use a production build:
+
+  ```bash
+  npm run build && npm start   # then install the app and toggle the network off
+  ```
+
+- **iOS caveats** are the ones the plan documents: background playback works
+  through the app's single persistent audio element, but auto-advance across a
+  locked screen stays fragile until Phase 4's compiled single-file playlist
+  tracks land.
+
 ## Troubleshooting
 
 ### `An Application Control policy has blocked this file` (next-swc)
@@ -166,5 +257,7 @@ Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy' |
   Select-Object VerifiedAndReputablePolicyState   # 0 off, 1 enforced, 2 evaluation
 ```
 
-`npm run build` keeps `--turbopack`: Vercel builds on Linux, where the native
-binary loads normally. Locally, build with `npx next build` (no flag) if needed.
+`npm run build` does **not** pass `--turbopack` either, for an unrelated reason:
+the service-worker build step (`serwist build`) reads the finished `.next`
+output, and Serwist has no Turbopack support. Webpack builds work on Vercel's
+Linux runners as well as locally.

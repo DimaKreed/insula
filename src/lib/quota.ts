@@ -65,3 +65,29 @@ export function checkSentenceQuota(
         : `Only ${remaining} of your ${limits.sentencesTranslated} monthly translations are left — you tried to add ${requested}.`,
   };
 }
+
+export type TtsQuotaCheck =
+  | { allowed: true }
+  | { allowed: false; remaining: number; limit: number; message: string };
+
+/**
+ * Pre-check for one TTS synthesis. Per sentence rather than per batch: audio is
+ * generated in the background one sentence at a time, so a partially voiced
+ * island is a normal state and the ones that fit should still get audio.
+ * Dedup hits never reach here — they cost nothing.
+ */
+export function checkTtsQuota(
+  limits: PlanLimits | null,
+  used: number,
+  chars: number,
+): TtsQuotaCheck {
+  if (limits === null) return { allowed: true };
+  const remaining = Math.max(0, limits.ttsChars - used);
+  if (chars <= remaining) return { allowed: true };
+  return {
+    allowed: false,
+    remaining,
+    limit: limits.ttsChars,
+    message: `You've used ${used.toLocaleString()} of your ${limits.ttsChars.toLocaleString()} monthly audio characters — this sentence needs ${chars}.`,
+  };
+}

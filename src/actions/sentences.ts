@@ -16,6 +16,7 @@ import {
 } from '@/db/queries/sentences';
 import { monthlyUsage, recordTranslationUsage } from '@/db/queries/usage';
 import { sentences } from '@/db/schema';
+import { startAudio } from '@/lib/audio/queue';
 import { parseCaptureLines } from '@/lib/capture';
 import { translationHash } from '@/lib/hash';
 import { checkSentenceQuota, limitsFor, yearMonth } from '@/lib/quota';
@@ -24,9 +25,10 @@ import { chunk, getTranslationProvider } from '@/lib/translate';
 import { done, failed, type ActionResult } from './result';
 
 /**
- * Capture → translate. Phase 1 translates inline in the action (Implementation
- * Plan section 6): the caller waits, no queue. Phase 2 moves the translation
- * half behind QStash and the statuses written here become the polled ones.
+ * Capture → translate → TTS. Translation is inline (Implementation Plan section
+ * 6): the caller waits for the Romanian, which is what they came for. Audio is
+ * background work behind `enqueue`, so the action returns as soon as the text
+ * exists and the island page polls the rows to 'ready'.
  */
 export async function captureSentences(
   input: unknown,
@@ -92,6 +94,8 @@ export async function captureSentences(
   const toTranslate = rows.filter((row) => !cached.has(row.hash));
 
   await runTranslation(user, toTranslate, sourceLang, targetLang);
+  // Every row that now has Romanian text — cache hits included.
+  await startAudio(rows.map((row) => row.id));
 
   revalidatePath(`/islands/${island.id}`);
   revalidatePath('/islands');
@@ -108,7 +112,14 @@ export async function retrySentence(input: unknown): Promise<ActionResult> {
   const user = await requireUser();
   const sentence = await getSentence(user.id, parsed.data.sentenceId);
   if (!sentence) return failed('Sentence not found.');
-  if (sentence.targetText) return done; // already translated; nothing to retry
+
+  // Translated already: what failed was the audio, so retry only that half.
+  if (sentence.targetText) {
+    if (sentence.targetAudioId) return done;
+    await startAudio([sentence.id]);
+    revalidatePath(`/islands/${sentence.islandId}`);
+    return done;
+  }
 
   const quota = await checkQuota(user, 1);
   if (!quota.allowed) return failed(quota.message);
@@ -139,6 +150,7 @@ export async function retrySentence(input: unknown): Promise<ActionResult> {
     sentence.sourceLang,
     sentence.targetLang,
   );
+  await startAudio([sentence.id]);
 
   revalidatePath(`/islands/${sentence.islandId}`);
   return done;
@@ -192,6 +204,9 @@ export async function editSentence(input: unknown): Promise<ActionResult> {
       contentHash: hash,
       targetText: hit?.targetText ?? null,
       translationNote: hit?.translationNote ?? null,
+      // The old recording belongs to the old Romanian text. Unlinking it here
+      // leaves the shared asset in place for whoever else points at it.
+      targetAudioId: null,
       status: hit ? 'translated' : 'translating',
       errorMessage: null,
       updatedAt: new Date(),
@@ -206,6 +221,7 @@ export async function editSentence(input: unknown): Promise<ActionResult> {
       sentence.targetLang,
     );
   }
+  await startAudio([sentence.id]);
 
   revalidatePath(`/islands/${sentence.islandId}`);
   return done;

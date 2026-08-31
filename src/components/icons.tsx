@@ -183,6 +183,51 @@ export function MoreIcon({ size = 18, className }: Props) {
   );
 }
 
+export function PauseIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <line x1="9" y1="5" x2="9" y2="19" />
+      <line x1="15" y1="5" x2="15" y2="19" />
+    </Svg>
+  );
+}
+
+export function PrevIcon(p: Props) {
+  return (
+    <Svg {...p} filled>
+      <polygon points="19 20 9 12 19 4 19 20" />
+      <line x1="5" y1="19" x2="5" y2="5" strokeWidth="1.6" />
+    </Svg>
+  );
+}
+
+export function NextIcon(p: Props) {
+  return (
+    <Svg {...p} filled>
+      <polygon points="5 4 15 12 5 20 5 4" />
+      <line x1="19" y1="5" x2="19" y2="19" strokeWidth="1.6" />
+    </Svg>
+  );
+}
+
+export function DownloadIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M12 4v11" />
+      <path d="m7 11 5 5 5-5" />
+      <path d="M5 20h14" />
+    </Svg>
+  );
+}
+
+export function ChevronDownIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <polyline points="6 9 12 15 18 9" />
+    </Svg>
+  );
+}
+
 /** The sand-coloured wave under the wordmark. */
 export function Wordmark({ width = 44 }: { width?: number }) {
   return (

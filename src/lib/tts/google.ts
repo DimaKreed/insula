@@ -2,6 +2,7 @@ import { createSign } from 'node:crypto';
 
 import {
   assertConfigured,
+  fetchRetrying,
   requestFailed,
   type ConfigCheck,
   type SynthesizeInput,
@@ -87,6 +88,8 @@ function signJwt(sa: ServiceAccount): string {
 
 export const google: TtsProvider = {
   name: 'google',
+  // Neural2/Studio list price ≈ $16 per 1M characters.
+  costMicrosPerChar: 16,
 
   isConfigured(): ConfigCheck {
     return process.env.GOOGLE_TTS_CREDENTIALS
@@ -104,7 +107,7 @@ export const google: TtsProvider = {
   async synthesize(input: SynthesizeInput): Promise<SynthesizeResult> {
     assertConfigured(google);
 
-    const res = await fetch(ENDPOINT, {
+    const res = await fetchRetrying(ENDPOINT, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${signJwt(readServiceAccount())}`,

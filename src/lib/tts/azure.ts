@@ -1,5 +1,6 @@
 import {
   assertConfigured,
+  fetchRetrying,
   requestFailed,
   type ConfigCheck,
   type SynthesizeInput,
@@ -29,6 +30,8 @@ function escapeXml(text: string): string {
 
 export const azure: TtsProvider = {
   name: 'azure',
+  // Free F0 tier: 0.5M characters/month, which our whole corpus fits inside.
+  costMicrosPerChar: 0,
 
   isConfigured(): ConfigCheck {
     const missing = (
@@ -52,7 +55,7 @@ export const azure: TtsProvider = {
       `<voice name='${input.voiceId}'>${escapeXml(input.text)}</voice>` +
       `</speak>`;
 
-    const res = await fetch(
+    const res = await fetchRetrying(
       `https://${process.env.AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`,
       {
         method: 'POST',

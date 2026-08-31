@@ -3,10 +3,13 @@ import { notFound } from 'next/navigation';
 
 import { requireUser } from '@/auth';
 import { CaptureBox } from '@/components/capture/capture-box';
-import { ChevronLeftIcon } from '@/components/icons';
+import { ChevronLeftIcon, PlayIcon } from '@/components/icons';
+import { OfflineBadge } from '@/components/islands/offline-badge';
 import { SentenceRow } from '@/components/islands/sentence-row';
+import { StatusPoller } from '@/components/islands/status-poller';
 import { getIsland } from '@/db/queries/islands';
 import { listSentences } from '@/db/queries/sentences';
+import { statusFingerprint } from '@/lib/status';
 
 export default async function IslandDetailPage({
   params,
@@ -19,10 +22,26 @@ export default async function IslandDetailPage({
   if (!island) notFound();
 
   const sentences = await listSentences(user.id, island.id);
-  const translated = sentences.filter((s) => s.targetText !== null).length;
+  const withAudio = sentences.filter((s) => s.audioUrl !== null).length;
+  const pending = sentences.filter(
+    (s) => s.status !== 'ready' && s.status !== 'error',
+  ).length;
+  const fingerprint = statusFingerprint(
+    sentences.map((s) => ({
+      id: s.id,
+      status: s.status,
+      hasAudio: s.audioUrl !== null,
+    })),
+  );
 
   return (
     <main className="mx-auto flex w-full max-w-[440px] flex-col pb-4 lg:max-w-none lg:px-12 lg:py-10">
+      <StatusPoller
+        islandId={island.id}
+        pending={pending}
+        fingerprint={fingerprint}
+      />
+
       <div className="flex items-center gap-2.5 px-5 pt-14 pb-3 lg:px-0 lg:pt-0">
         <Link
           href="/islands"
@@ -38,14 +57,26 @@ export default async function IslandDetailPage({
               {island.name}
             </h1>
           </div>
-          <div className="text-[12.5px] text-ink3">
-            {sentences.length === 0
-              ? 'No sentences yet'
-              : `${sentences.length} ${
-                  sentences.length === 1 ? 'sentence' : 'sentences'
-                } · ${translated} translated`}
+          <div className="flex items-center gap-1.5 text-[12.5px] text-ink3">
+            <span>
+              {sentences.length === 0
+                ? 'No sentences yet'
+                : `${sentences.length} ${
+                    sentences.length === 1 ? 'sentence' : 'sentences'
+                  } · ${withAudio} with audio`}
+            </span>
+            <OfflineBadge islandId={island.id} />
           </div>
         </div>
+        {withAudio > 0 ? (
+          <Link
+            href={`/player/${island.id}`}
+            className="flex h-11 items-center gap-[7px] rounded-xl bg-teal-soft px-4 text-sm font-semibold text-teal"
+          >
+            <PlayIcon size={15} />
+            Play
+          </Link>
+        ) : null}
       </div>
 
       <CaptureBox islandId={island.id} />
@@ -62,7 +93,7 @@ export default async function IslandDetailPage({
       {sentences.length === 0 ? (
         <p className="mx-5 rounded-2xl border border-line bg-surface p-6 text-center text-[14px] leading-relaxed text-ink3 shadow-card lg:mx-0">
           Paste a few sentences you actually said today — one per line. Insula
-          translates them into Romanian.
+          translates them into Romanian and voices them.
         </p>
       ) : (
         <ul className="mx-5 overflow-hidden rounded-2xl border border-line bg-surface shadow-card lg:mx-0">

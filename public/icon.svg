@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Insula's mark: the island-and-waves motif from the design canvas.
+       The PNG icons in this folder are rasterized from this file. -->
+  <rect width="512" height="512" fill="#2a3342"/>
+  <g fill="none" stroke-linecap="round" stroke-width="26">
+    <path d="M150 300c0-72 47-126 106-126s106 54 106 126" stroke="#dcb478"/>
+    <path d="M196 300c0-45 27-78 60-78s60 33 60 78" stroke="#dcb478" opacity="0.55"/>
+    <path d="M84 352c22-19 44-19 66 0s44 19 66 0 44-19 66 0 44 19 66 0 44-19 66 0" stroke="#3f9dae"/>
+    <path d="M118 412c22-19 44-19 66 0s44 19 66 0 44-19 66 0 44 19 66 0" stroke="#3f9dae" opacity="0.5"/>
+  </g>
+</svg>

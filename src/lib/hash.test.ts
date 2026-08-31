@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeText, translationHash } from './hash';
+import { audioHash, normalizeText, translationHash } from './hash';
 
 describe('normalizeText', () => {
   it('collapses whitespace and trims', () => {
@@ -47,6 +47,29 @@ describe('translationHash', () => {
   it('separates providers, so a provider switch re-translates instead of reusing the cache', () => {
     expect(translationHash('I am late', 'en', 'ro', 'gemini')).not.toBe(
       translationHash('I am late', 'en', 'ro', 'claude'),
+    );
+  });
+});
+
+describe('audioHash', () => {
+  const args = ['azure', 'ro-RO-AlinaNeural', 'ro-RO', 'Întârzii cinci minute.', 'mp3'] as const;
+
+  it('is stable across formatting differences in the text', () => {
+    expect(audioHash(...args)).toBe(
+      audioHash('azure', 'ro-RO-AlinaNeural', 'ro-RO', '  Întârzii   cinci minute.  ', 'mp3'),
+    );
+  });
+
+  it('changes with the voice, the provider and the format', () => {
+    const base = audioHash(...args);
+    expect(audioHash('azure', 'ro-RO-EmilNeural', 'ro-RO', args[3], 'mp3')).not.toBe(base);
+    expect(audioHash('google', 'ro-RO-AlinaNeural', 'ro-RO', args[3], 'mp3')).not.toBe(base);
+    expect(audioHash('azure', 'ro-RO-AlinaNeural', 'ro-RO', args[3], 'wav')).not.toBe(base);
+  });
+
+  it('differs from the translation hash of the same text', () => {
+    expect(audioHash(...args)).not.toBe(
+      translationHash(args[3], 'en', 'ro', 'gemini'),
     );
   });
 });
