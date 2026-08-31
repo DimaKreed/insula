@@ -1,0 +1,113 @@
+{
+  "island": {
+    "name": "Running & sport",
+    "emoji": "🏃",
+    "level": "A2",
+    "description": "Training, races, pace and distance, the gym and talking about sport."
+  },
+  "sentences": [
+    {
+      "en": "I run three times a week.",
+      "ro": "Alerg de trei ori pe săptămână.",
+      "lemmas": ["alerga", "oară", "săptămână"]
+    },
+    {
+      "en": "This morning I ran ten kilometres.",
+      "ro": "În dimineața asta am alergat zece kilometri.",
+      "lemmas": ["dimineață", "alerga", "kilometru"]
+    },
+    {
+      "en": "Do you want to come running with me?",
+      "ro": "Vrei să vii cu mine la alergat?",
+      "note": "\"La alergat\" (to the running) is how people invite each other for a run.",
+      "lemmas": ["vrea", "veni", "alerga"]
+    },
+    {
+      "en": "What pace do you usually run?",
+      "ro": "Cu ce ritm alergi de obicei?",
+      "lemmas": ["ritm", "alerga", "obicei"]
+    },
+    {
+      "en": "I'm training for a marathon in the autumn.",
+      "ro": "Mă antrenez pentru un maraton toamna.",
+      "lemmas": ["antrena", "maraton", "toamnă"]
+    },
+    {
+      "en": "Today is an easy run, not a hard one.",
+      "ro": "Azi e o alergare ușoară, nu una grea.",
+      "lemmas": ["alergare", "ușor", "greu"]
+    },
+    {
+      "en": "My legs hurt after yesterday's training.",
+      "ro": "Mă dor picioarele după antrenamentul de ieri.",
+      "lemmas": ["durea", "picior", "antrenament", "ieri"]
+    },
+    {
+      "en": "I need new running shoes.",
+      "ro": "Am nevoie de adidași noi de alergare.",
+      "note": "\"Adidași\" means trainers in general, whatever the brand.",
+      "lemmas": ["nevoie", "adidas", "nou", "alergare"]
+    },
+    {
+      "en": "Where is a good place to run around here?",
+      "ro": "Unde se poate alerga bine pe aici?",
+      "lemmas": ["unde", "putea", "alerga", "bine"]
+    },
+    {
+      "en": "I prefer to run in the park, not on the street.",
+      "ro": "Prefer să alerg în parc, nu pe stradă.",
+      "lemmas": ["prefera", "alerga", "parc", "stradă"]
+    },
+    {
+      "en": "I didn't train at all last week.",
+      "ro": "Săptămâna trecută nu m-am antrenat deloc.",
+      "lemmas": ["săptămână", "trecut", "antrena", "deloc"]
+    },
+    {
+      "en": "I signed up for a race in May.",
+      "ro": "M-am înscris la o cursă în mai.",
+      "lemmas": ["înscrie", "cursă", "mai"]
+    },
+    {
+      "en": "How long did the race take you?",
+      "ro": "În cât timp ai terminat cursa?",
+      "lemmas": ["timp", "termina", "cursă"]
+    },
+    {
+      "en": "I finished in under fifty minutes.",
+      "ro": "Am terminat în mai puțin de cincizeci de minute.",
+      "lemmas": ["termina", "puțin", "cincizeci", "minut"]
+    },
+    {
+      "en": "I go to the gym twice a week too.",
+      "ro": "Merg și la sală de două ori pe săptămână.",
+      "note": "\"Sală\" alone means the gym in everyday speech.",
+      "lemmas": ["merge", "sală", "oară", "săptămână"]
+    },
+    {
+      "en": "I have to stretch before I start.",
+      "ro": "Trebuie să mă întind înainte să încep.",
+      "lemmas": ["trebui", "întinde", "începe"]
+    },
+    {
+      "en": "It's too hot to run at noon.",
+      "ro": "E prea cald să alerg la prânz.",
+      "lemmas": ["cald", "alerga", "prânz"]
+    },
+    {
+      "en": "I drink a lot of water after training.",
+      "ro": "Beau multă apă după antrenament.",
+      "lemmas": ["bea", "mult", "apă", "antrenament"]
+    },
+    {
+      "en": "Well done, that was a great result!",
+      "ro": "Bravo, a fost un rezultat foarte bun!",
+      "lemmas": ["bravo", "rezultat", "bun"]
+    },
+    {
+      "en": "I want to improve my time this year.",
+      "ro": "Vreau să îmi îmbunătățesc timpul anul ăsta.",
+      "lemmas": ["vrea", "îmbunătăți", "timp", "an"]
+    }
+  ]
+}

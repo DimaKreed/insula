@@ -1,0 +1,116 @@
+{
+  "island": {
+    "name": "Weather & time",
+    "emoji": "🌤️",
+    "level": "A1",
+    "description": "Talking about the weather and the seasons, telling the time, days and dates."
+  },
+  "sentences": [
+    {
+      "en": "What's the weather like today?",
+      "ro": "Cum e vremea azi?",
+      "note": "\"Vreme\" is weather; \"timp\" is time — don't mix them up.",
+      "lemmas": ["cum", "vreme"]
+    },
+    {
+      "en": "It's warm and sunny outside.",
+      "ro": "E cald și e soare afară.",
+      "lemmas": ["cald", "soare", "afară"]
+    },
+    {
+      "en": "It's raining, take an umbrella.",
+      "ro": "Plouă, ia o umbrelă.",
+      "lemmas": ["ploua", "lua", "umbrelă"]
+    },
+    {
+      "en": "It's very cold this morning.",
+      "ro": "E foarte frig în dimineața asta.",
+      "lemmas": ["frig", "dimineață"]
+    },
+    {
+      "en": "It snowed a lot last night.",
+      "ro": "A nins mult azi-noapte.",
+      "lemmas": ["ninge", "mult", "noapte"]
+    },
+    {
+      "en": "It's not going to rain tomorrow.",
+      "ro": "Mâine nu o să plouă.",
+      "note": "\"O să\" + verb is the everyday future, much more common than \"voi ploua\".",
+      "lemmas": ["mâine", "ploua"]
+    },
+    {
+      "en": "How many degrees is it outside?",
+      "ro": "Câte grade sunt afară?",
+      "lemmas": ["grad", "afară"]
+    },
+    {
+      "en": "The wind is strong today.",
+      "ro": "Bate vântul tare azi.",
+      "note": "Wind \"beats\" in Romanian: \"bate vântul\".",
+      "lemmas": ["bate", "vânt", "tare"]
+    },
+    {
+      "en": "I love autumn more than summer.",
+      "ro": "Îmi place toamna mai mult decât vara.",
+      "lemmas": ["plăcea", "toamnă", "vară"]
+    },
+    {
+      "en": "What time is it?",
+      "ro": "Cât e ceasul?",
+      "note": "Literally \"how much is the clock\" — the standard way to ask the time.",
+      "lemmas": ["ceas"]
+    },
+    {
+      "en": "It's half past six.",
+      "ro": "E șase și jumătate.",
+      "lemmas": ["șase", "jumătate"]
+    },
+    {
+      "en": "It's a quarter to nine.",
+      "ro": "E nouă fără un sfert.",
+      "lemmas": ["nouă", "sfert"]
+    },
+    {
+      "en": "What day is it today?",
+      "ro": "În ce zi suntem azi?",
+      "lemmas": ["zi"]
+    },
+    {
+      "en": "My birthday is on the twelfth of March.",
+      "ro": "Ziua mea e pe doisprezece martie.",
+      "note": "\"Ziua mea\" (my day) is how Romanians say \"my birthday\".",
+      "lemmas": ["zi", "doisprezece", "martie"]
+    },
+    {
+      "en": "I don't have time right now.",
+      "ro": "Nu am timp chiar acum.",
+      "lemmas": ["timp", "acum"]
+    },
+    {
+      "en": "We still have half an hour.",
+      "ro": "Mai avem o jumătate de oră.",
+      "lemmas": ["avea", "jumătate", "oră"]
+    },
+    {
+      "en": "It gets dark early in December.",
+      "ro": "Se întunecă devreme în decembrie.",
+      "lemmas": ["întuneca", "devreme", "decembrie"]
+    },
+    {
+      "en": "The days are getting longer now.",
+      "ro": "Zilele se fac mai lungi acum.",
+      "lemmas": ["zi", "face", "lung"]
+    },
+    {
+      "en": "Are you free on Saturday morning?",
+      "ro": "Ești liber sâmbătă dimineață?",
+      "note": "To a woman: \"ești liberă\".",
+      "lemmas": ["liber", "sâmbătă", "dimineață"]
+    },
+    {
+      "en": "The weather was better last week.",
+      "ro": "Vremea a fost mai bună săptămâna trecută.",
+      "lemmas": ["vreme", "bun", "săptămână", "trecut"]
+    }
+  ]
+}

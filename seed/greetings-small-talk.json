@@ -1,0 +1,118 @@
+{
+  "island": {
+    "name": "Greetings & small talk",
+    "emoji": "👋",
+    "level": "A1",
+    "description": "Saying hello and goodbye, introducing yourself, and keeping a light conversation going."
+  },
+  "sentences": [
+    {
+      "en": "Hi, how are you?",
+      "ro": "Bună, ce mai faci?",
+      "note": "\"Ce mai faci?\" is the everyday version; with strangers use \"Ce mai faceți?\".",
+      "lemmas": ["bun", "face"]
+    },
+    {
+      "en": "I'm fine, thanks, and you?",
+      "ro": "Sunt bine, mulțumesc, dar tu?",
+      "lemmas": ["bine", "mulțumi"]
+    },
+    {
+      "en": "Good morning! Did you sleep well?",
+      "ro": "Bună dimineața! Ai dormit bine?",
+      "lemmas": ["dimineață", "dormi", "bine"]
+    },
+    {
+      "en": "My name is Dmytro, nice to meet you.",
+      "ro": "Mă numesc Dmytro, îmi pare bine.",
+      "note": "\"Îmi pare bine\" literally \"it seems good to me\" — the standard nice-to-meet-you.",
+      "lemmas": ["numi", "părea", "bine"]
+    },
+    {
+      "en": "Where are you from?",
+      "ro": "De unde ești?",
+      "lemmas": ["unde"]
+    },
+    {
+      "en": "I'm from Ukraine, but I live here now.",
+      "ro": "Sunt din Ucraina, dar acum locuiesc aici.",
+      "lemmas": ["Ucraina", "acum", "locui", "aici"]
+    },
+    {
+      "en": "I don't speak Romanian very well yet.",
+      "ro": "Încă nu vorbesc foarte bine românește.",
+      "note": "\"Românește\" (adverb) is more natural here than \"limba română\".",
+      "lemmas": ["încă", "vorbi", "bine", "românește"]
+    },
+    {
+      "en": "Sorry, can you repeat that more slowly?",
+      "ro": "Scuze, poți să repeți mai rar?",
+      "note": "Romanians say \"mai rar\" (less often) for \"more slowly\" in speech.",
+      "lemmas": ["scuză", "putea", "repeta", "rar"]
+    },
+    {
+      "en": "How was your weekend?",
+      "ro": "Cum a fost weekendul tău?",
+      "lemmas": ["cum", "weekend"]
+    },
+    {
+      "en": "It was quiet, I stayed at home.",
+      "ro": "A fost liniștit, am stat acasă.",
+      "lemmas": ["liniștit", "sta", "acasă"]
+    },
+    {
+      "en": "What do you do for a living?",
+      "ro": "Cu ce te ocupi?",
+      "note": "Literally \"what do you occupy yourself with\" — the normal way to ask about someone's job.",
+      "lemmas": ["ocupa"]
+    },
+    {
+      "en": "I work as a programmer at a small company.",
+      "ro": "Lucrez ca programator la o firmă mică.",
+      "lemmas": ["lucra", "programator", "firmă", "mic"]
+    },
+    {
+      "en": "Long time no see!",
+      "ro": "Nu ne-am văzut de mult!",
+      "lemmas": ["vedea", "mult"]
+    },
+    {
+      "en": "I'm sorry, I'm in a hurry right now.",
+      "ro": "Îmi pare rău, sunt grăbit acum.",
+      "lemmas": ["părea", "rău", "grăbit"]
+    },
+    {
+      "en": "Say hello to your family from me.",
+      "ro": "Salut-o pe familia ta din partea mea.",
+      "lemmas": ["saluta", "familie", "parte"]
+    },
+    {
+      "en": "See you tomorrow, have a nice evening!",
+      "ro": "Ne vedem mâine, seară plăcută!",
+      "lemmas": ["vedea", "mâine", "seară", "plăcut"]
+    },
+    {
+      "en": "I don't remember your name, sorry.",
+      "ro": "Nu îmi amintesc cum te cheamă, scuze.",
+      "note": "\"Cum te cheamă\" (how are you called) is warmer than repeating \"numele tău\".",
+      "lemmas": ["aminti", "chema", "scuză"]
+    },
+    {
+      "en": "Thanks a lot, you're very kind.",
+      "ro": "Mulțumesc mult, ești foarte amabil.",
+      "note": "Say \"amabilă\" when speaking to a woman.",
+      "lemmas": ["mulțumi", "mult", "amabil"]
+    },
+    {
+      "en": "How old are you, if I may ask?",
+      "ro": "Câți ani ai, dacă pot să întreb?",
+      "note": "Age uses \"a avea\": literally \"how many years do you have\".",
+      "lemmas": ["an", "avea", "putea", "întreba"]
+    },
+    {
+      "en": "Have a good trip, take care!",
+      "ro": "Drum bun, ai grijă de tine!",
+      "lemmas": ["drum", "bun", "grijă"]
+    }
+  ]
+}

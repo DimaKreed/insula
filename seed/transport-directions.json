@@ -1,0 +1,114 @@
+{
+  "island": {
+    "name": "Transport & directions",
+    "emoji": "🚌",
+    "level": "A1",
+    "description": "Asking the way, using buses, taxis and trains, and dealing with delays."
+  },
+  "sentences": [
+    {
+      "en": "How do I get to the train station?",
+      "ro": "Cum ajung la gară?",
+      "lemmas": ["cum", "ajunge", "gară"]
+    },
+    {
+      "en": "Is it far from here?",
+      "ro": "E departe de aici?",
+      "lemmas": ["departe", "aici"]
+    },
+    {
+      "en": "Go straight and then turn left.",
+      "ro": "Mergi drept și apoi fă stânga.",
+      "note": "\"Fă stânga\" (make left) is how drivers and locals say it.",
+      "lemmas": ["merge", "drept", "face", "stânga"]
+    },
+    {
+      "en": "It's about ten minutes on foot.",
+      "ro": "E cam zece minute pe jos.",
+      "lemmas": ["zece", "minut", "jos"]
+    },
+    {
+      "en": "Which bus goes to the centre?",
+      "ro": "Care autobuz merge în centru?",
+      "lemmas": ["autobuz", "merge", "centru"]
+    },
+    {
+      "en": "Where can I buy a ticket?",
+      "ro": "De unde pot să cumpăr un bilet?",
+      "lemmas": ["unde", "putea", "cumpăra", "bilet"]
+    },
+    {
+      "en": "Does this tram stop at the market?",
+      "ro": "Tramvaiul ăsta oprește la piață?",
+      "lemmas": ["tramvai", "opri", "piață"]
+    },
+    {
+      "en": "I'm getting off at the next stop.",
+      "ro": "Cobor la stația următoare.",
+      "lemmas": ["coborî", "stație", "următor"]
+    },
+    {
+      "en": "Sorry, I'm lost.",
+      "ro": "Scuze, m-am rătăcit.",
+      "lemmas": ["scuză", "rătăci"]
+    },
+    {
+      "en": "I don't know this neighbourhood.",
+      "ro": "Nu cunosc cartierul ăsta.",
+      "lemmas": ["cunoaște", "cartier"]
+    },
+    {
+      "en": "Can you show me on the map?",
+      "ro": "Poți să îmi arăți pe hartă?",
+      "lemmas": ["putea", "arăta", "hartă"]
+    },
+    {
+      "en": "The train is twenty minutes late.",
+      "ro": "Trenul are douăzeci de minute întârziere.",
+      "note": "Delay uses \"a avea\": literally \"the train has twenty minutes of delay\".",
+      "lemmas": ["tren", "avea", "douăzeci", "minut", "întârziere"]
+    },
+    {
+      "en": "I missed my bus.",
+      "ro": "Am pierdut autobuzul.",
+      "lemmas": ["pierde", "autobuz"]
+    },
+    {
+      "en": "Please take me to this address.",
+      "ro": "Vă rog să mă duceți la adresa asta.",
+      "note": "Said to a taxi driver — \"vă rog\" keeps it polite.",
+      "lemmas": ["ruga", "duce", "adresă"]
+    },
+    {
+      "en": "How much is the ride to the airport?",
+      "ro": "Cât costă cursa până la aeroport?",
+      "lemmas": ["costa", "cursă", "aeroport"]
+    },
+    {
+      "en": "Stop here, please.",
+      "ro": "Opriți aici, vă rog.",
+      "lemmas": ["opri", "aici", "ruga"]
+    },
+    {
+      "en": "There's a lot of traffic this morning.",
+      "ro": "E mult trafic în dimineața asta.",
+      "lemmas": ["mult", "trafic", "dimineață"]
+    },
+    {
+      "en": "I don't have change for the ticket.",
+      "ro": "Nu am mărunt pentru bilet.",
+      "note": "\"Mărunt\" = small coins; \"rest\" is the change you get back.",
+      "lemmas": ["avea", "mărunt", "bilet"]
+    },
+    {
+      "en": "Where do I have to change trains?",
+      "ro": "Unde trebuie să schimb trenul?",
+      "lemmas": ["unde", "trebui", "schimba", "tren"]
+    },
+    {
+      "en": "I usually go to work by bike.",
+      "ro": "De obicei merg la muncă cu bicicleta.",
+      "lemmas": ["obicei", "merge", "muncă", "bicicletă"]
+    }
+  ]
+}

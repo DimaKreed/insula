@@ -1,0 +1,117 @@
+{
+  "island": {
+    "name": "Health & pharmacy",
+    "emoji": "💊",
+    "level": "A2",
+    "description": "Describing symptoms, booking a doctor, buying medicine at the pharmacy."
+  },
+  "sentences": [
+    {
+      "en": "I don't feel well today.",
+      "ro": "Nu mă simt bine astăzi.",
+      "lemmas": ["simți", "bine", "astăzi"]
+    },
+    {
+      "en": "I have a headache.",
+      "ro": "Mă doare capul.",
+      "note": "Pain is expressed with \"a durea\": literally \"the head hurts me\".",
+      "lemmas": ["durea", "cap"]
+    },
+    {
+      "en": "My throat hurts and I have a fever.",
+      "ro": "Mă doare gâtul și am febră.",
+      "lemmas": ["durea", "gât", "avea", "febră"]
+    },
+    {
+      "en": "I'd like to make an appointment with the doctor.",
+      "ro": "Aș vrea să fac o programare la doctor.",
+      "note": "\"Programare\" is the word for a booked appointment.",
+      "lemmas": ["vrea", "face", "programare", "doctor"]
+    },
+    {
+      "en": "When can you see me?",
+      "ro": "Când mă puteți primi?",
+      "note": "Doctors and clinic staff get \"dumneavoastră\" — hence \"puteți\".",
+      "lemmas": ["când", "putea", "primi"]
+    },
+    {
+      "en": "It started three days ago.",
+      "ro": "A început acum trei zile.",
+      "note": "\"Acum trei zile\" = three days ago.",
+      "lemmas": ["începe", "trei", "zi"]
+    },
+    {
+      "en": "I hurt my knee while running.",
+      "ro": "M-am lovit la genunchi când alergam.",
+      "lemmas": ["lovi", "genunchi", "alerga"]
+    },
+    {
+      "en": "Do I need a prescription for this?",
+      "ro": "Am nevoie de rețetă pentru asta?",
+      "note": "\"Rețetă\" is both a medical prescription and a cooking recipe.",
+      "lemmas": ["nevoie", "rețetă"]
+    },
+    {
+      "en": "Do you have something for a cough?",
+      "ro": "Aveți ceva pentru tuse?",
+      "lemmas": ["avea", "tuse"]
+    },
+    {
+      "en": "How many times a day do I take it?",
+      "ro": "De câte ori pe zi îl iau?",
+      "lemmas": ["oară", "zi", "lua"]
+    },
+    {
+      "en": "Take one pill after each meal.",
+      "ro": "Luați o pastilă după fiecare masă.",
+      "lemmas": ["lua", "pastilă", "fiecare", "masă"]
+    },
+    {
+      "en": "I'm not taking any other medicine.",
+      "ro": "Nu iau alte medicamente.",
+      "lemmas": ["lua", "medicament"]
+    },
+    {
+      "en": "Where is the nearest pharmacy?",
+      "ro": "Unde e cea mai apropiată farmacie?",
+      "lemmas": ["unde", "apropiat", "farmacie"]
+    },
+    {
+      "en": "Is this pharmacy open at night?",
+      "ro": "Farmacia asta e deschisă noaptea?",
+      "lemmas": ["farmacie", "deschis", "noapte"]
+    },
+    {
+      "en": "I feel dizzy when I stand up.",
+      "ro": "Am amețeli când mă ridic.",
+      "lemmas": ["amețeală", "ridica"]
+    },
+    {
+      "en": "I slept badly, I'm very tired.",
+      "ro": "Am dormit prost, sunt foarte obosit.",
+      "note": "A woman says \"obosită\".",
+      "lemmas": ["dormi", "prost", "obosit"]
+    },
+    {
+      "en": "Is it something serious?",
+      "ro": "E ceva grav?",
+      "lemmas": ["grav"]
+    },
+    {
+      "en": "I have to rest for a few days.",
+      "ro": "Trebuie să mă odihnesc câteva zile.",
+      "lemmas": ["trebui", "odihni", "câteva", "zi"]
+    },
+    {
+      "en": "I'm feeling better than yesterday.",
+      "ro": "Mă simt mai bine decât ieri.",
+      "lemmas": ["simți", "bine", "ieri"]
+    },
+    {
+      "en": "Get well soon!",
+      "ro": "Însănătoșire grabnică!",
+      "note": "The standard get-well wish; informally people also say \"Să te faci bine!\".",
+      "lemmas": ["însănătoșire", "grabnic"]
+    }
+  ]
+}

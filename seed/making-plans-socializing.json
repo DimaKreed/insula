@@ -1,0 +1,116 @@
+{
+  "island": {
+    "name": "Making plans & socializing",
+    "emoji": "🎉",
+    "level": "A2",
+    "description": "Inviting people out, agreeing on a time and place, cancelling and rescheduling."
+  },
+  "sentences": [
+    {
+      "en": "What are you doing this evening?",
+      "ro": "Ce faci diseară?",
+      "lemmas": ["face", "diseară"]
+    },
+    {
+      "en": "Do you want to go out for a beer?",
+      "ro": "Vrei să ieșim la o bere?",
+      "note": "\"A ieși la o bere\" is the standard invitation for a drink.",
+      "lemmas": ["vrea", "ieși", "bere"]
+    },
+    {
+      "en": "Let's meet in front of the cinema.",
+      "ro": "Hai să ne vedem în fața cinematografului.",
+      "lemmas": ["vedea", "față", "cinematograf"]
+    },
+    {
+      "en": "What time works for you?",
+      "ro": "La ce oră îți convine?",
+      "note": "\"Îți convine\" = it suits you — very common when agreeing on a time.",
+      "lemmas": ["oră", "conveni"]
+    },
+    {
+      "en": "Seven o'clock is perfect for me.",
+      "ro": "La șapte e perfect pentru mine.",
+      "lemmas": ["șapte", "perfect"]
+    },
+    {
+      "en": "I can't tonight, I'm busy.",
+      "ro": "Nu pot diseară, sunt ocupat.",
+      "note": "A woman says \"ocupată\".",
+      "lemmas": ["putea", "diseară", "ocupat"]
+    },
+    {
+      "en": "Can we do it another time?",
+      "ro": "Putem să ne vedem altă dată?",
+      "lemmas": ["putea", "vedea", "dată"]
+    },
+    {
+      "en": "I'm sorry, something came up.",
+      "ro": "Îmi pare rău, mi-a apărut ceva.",
+      "lemmas": ["părea", "rău", "apărea"]
+    },
+    {
+      "en": "Come to my place, I'll cook something.",
+      "ro": "Vino la mine, gătesc eu ceva.",
+      "lemmas": ["veni", "găti"]
+    },
+    {
+      "en": "Can I bring a friend along?",
+      "ro": "Pot să vin cu un prieten?",
+      "lemmas": ["putea", "veni", "prieten"]
+    },
+    {
+      "en": "There's a party at Andrei's on Friday.",
+      "ro": "Vineri e o petrecere la Andrei.",
+      "lemmas": ["vineri", "petrecere"]
+    },
+    {
+      "en": "I'll be there around nine.",
+      "ro": "Ajung pe la nouă.",
+      "note": "\"Pe la\" + time = around that time, roughly.",
+      "lemmas": ["ajunge", "nouă"]
+    },
+    {
+      "en": "Text me when you leave.",
+      "ro": "Dă-mi un mesaj când pleci.",
+      "lemmas": ["da", "mesaj", "pleca"]
+    },
+    {
+      "en": "I'm already on my way.",
+      "ro": "Sunt deja pe drum.",
+      "lemmas": ["deja", "drum"]
+    },
+    {
+      "en": "We haven't seen each other in ages.",
+      "ro": "Nu ne-am mai văzut de o veșnicie.",
+      "lemmas": ["vedea", "veșnicie"]
+    },
+    {
+      "en": "It was really nice, thanks for the invitation.",
+      "ro": "A fost foarte plăcut, mersi de invitație.",
+      "note": "\"Mersi\" is the casual thanks between friends.",
+      "lemmas": ["plăcut", "invitație"]
+    },
+    {
+      "en": "Shall we get the next round?",
+      "ro": "Mai luăm un rând?",
+      "note": "\"Un rând\" is a round of drinks.",
+      "lemmas": ["lua", "rând"]
+    },
+    {
+      "en": "I have to go, it's getting late.",
+      "ro": "Trebuie să plec, se face târziu.",
+      "lemmas": ["trebui", "pleca", "face", "târziu"]
+    },
+    {
+      "en": "Let me know if the plan changes.",
+      "ro": "Spune-mi dacă se schimbă planul.",
+      "lemmas": ["spune", "schimba", "plan"]
+    },
+    {
+      "en": "See you on Sunday then!",
+      "ro": "Atunci ne vedem duminică!",
+      "lemmas": ["vedea", "duminică"]
+    }
+  ]
+}

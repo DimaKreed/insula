@@ -1,0 +1,114 @@
+{
+  "island": {
+    "name": "Apartment & daily routine",
+    "emoji": "🏠",
+    "level": "A1",
+    "description": "Home life: waking up, chores, rent and the landlord, things that break."
+  },
+  "sentences": [
+    {
+      "en": "I get up at seven every day.",
+      "ro": "Mă trezesc la șapte în fiecare zi.",
+      "lemmas": ["trezi", "șapte", "fiecare", "zi"]
+    },
+    {
+      "en": "I make coffee before I read the news.",
+      "ro": "Îmi fac cafea înainte să citesc știrile.",
+      "lemmas": ["face", "cafea", "citi", "știre"]
+    },
+    {
+      "en": "I take a shower and get dressed quickly.",
+      "ro": "Fac un duș și mă îmbrac repede.",
+      "lemmas": ["face", "duș", "îmbrăca", "repede"]
+    },
+    {
+      "en": "My apartment has two rooms and a balcony.",
+      "ro": "Apartamentul meu are două camere și un balcon.",
+      "lemmas": ["apartament", "avea", "cameră", "balcon"]
+    },
+    {
+      "en": "How much is the rent per month?",
+      "ro": "Cât e chiria pe lună?",
+      "lemmas": ["chirie", "lună"]
+    },
+    {
+      "en": "Are the utilities included?",
+      "ro": "Sunt incluse și întreținerea și utilitățile?",
+      "note": "\"Întreținere\" is the monthly building charge — a separate bill from utilities.",
+      "lemmas": ["inclus", "întreținere", "utilitate"]
+    },
+    {
+      "en": "There's no hot water in the bathroom.",
+      "ro": "Nu e apă caldă în baie.",
+      "lemmas": ["apă", "cald", "baie"]
+    },
+    {
+      "en": "The washing machine is broken again.",
+      "ro": "Mașina de spălat s-a stricat din nou.",
+      "lemmas": ["mașină", "spăla", "strica"]
+    },
+    {
+      "en": "Can you send someone to fix it?",
+      "ro": "Poți să trimiți pe cineva să repare?",
+      "note": "Say this to the landlord; with an agency use \"puteți\".",
+      "lemmas": ["putea", "trimite", "cineva", "repara"]
+    },
+    {
+      "en": "I have to clean the kitchen tonight.",
+      "ro": "Trebuie să fac curat în bucătărie diseară.",
+      "note": "\"A face curat\" is the normal phrase for cleaning the house.",
+      "lemmas": ["trebui", "face", "curat", "bucătărie"]
+    },
+    {
+      "en": "I'm doing the laundry now.",
+      "ro": "Spăl rufele acum.",
+      "lemmas": ["spăla", "rufă", "acum"]
+    },
+    {
+      "en": "Where do I take out the rubbish?",
+      "ro": "Unde duc gunoiul?",
+      "lemmas": ["unde", "duce", "gunoi"]
+    },
+    {
+      "en": "The neighbours are very noisy at night.",
+      "ro": "Vecinii fac mult zgomot noaptea.",
+      "lemmas": ["vecin", "face", "zgomot", "noapte"]
+    },
+    {
+      "en": "I usually cook dinner around eight.",
+      "ro": "De obicei gătesc cina pe la opt.",
+      "lemmas": ["găti", "cină", "opt"]
+    },
+    {
+      "en": "I don't have time to cook during the week.",
+      "ro": "Nu am timp să gătesc în timpul săptămânii.",
+      "lemmas": ["timp", "găti", "săptămână"]
+    },
+    {
+      "en": "Did you lock the door?",
+      "ro": "Ai încuiat ușa?",
+      "lemmas": ["încuia", "ușă"]
+    },
+    {
+      "en": "I lost my keys somewhere in the house.",
+      "ro": "Mi-am pierdut cheile undeva prin casă.",
+      "lemmas": ["pierde", "cheie", "undeva", "casă"]
+    },
+    {
+      "en": "The heating doesn't work well in winter.",
+      "ro": "Căldura nu merge bine iarna.",
+      "note": "People say \"căldura\" for the heating in a flat, not \"încălzire\".",
+      "lemmas": ["căldură", "merge", "bine", "iarnă"]
+    },
+    {
+      "en": "I go to bed early because I run in the morning.",
+      "ro": "Mă culc devreme pentru că alerg dimineața.",
+      "lemmas": ["culca", "devreme", "alerga", "dimineață"]
+    },
+    {
+      "en": "I need to pay the bills this week.",
+      "ro": "Trebuie să plătesc facturile săptămâna asta.",
+      "lemmas": ["trebui", "plăti", "factură", "săptămână"]
+    }
+  ]
+}

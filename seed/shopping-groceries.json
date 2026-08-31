@@ -1,0 +1,116 @@
+{
+  "island": {
+    "name": "Shopping & groceries",
+    "emoji": "🛒",
+    "level": "A1",
+    "description": "Buying food and clothes, asking about prices and sizes, checkout and returns."
+  },
+  "sentences": [
+    {
+      "en": "How much does this cost?",
+      "ro": "Cât costă asta?",
+      "lemmas": ["costa"]
+    },
+    {
+      "en": "Excuse me, where is the milk?",
+      "ro": "Mă scuzați, unde este laptele?",
+      "note": "\"Mă scuzați\" is the polite way to stop a stranger in a shop.",
+      "lemmas": ["scuza", "unde", "lapte"]
+    },
+    {
+      "en": "I need two kilos of apples.",
+      "ro": "Am nevoie de două kilograme de mere.",
+      "note": "\"Am nevoie de\" = I need; the \"de\" is obligatory.",
+      "lemmas": ["nevoie", "kilogram", "măr"]
+    },
+    {
+      "en": "Do you have fresh bread?",
+      "ro": "Aveți pâine proaspătă?",
+      "lemmas": ["avea", "pâine", "proaspăt"]
+    },
+    {
+      "en": "That's too expensive for me.",
+      "ro": "E prea scump pentru mine.",
+      "lemmas": ["scump"]
+    },
+    {
+      "en": "Is this on sale?",
+      "ro": "Ăsta e la reducere?",
+      "note": "\"Reducere\" is the everyday word for a discount; \"ofertă\" also works.",
+      "lemmas": ["reducere"]
+    },
+    {
+      "en": "I don't need a bag, thanks.",
+      "ro": "Nu am nevoie de pungă, mulțumesc.",
+      "lemmas": ["nevoie", "pungă", "mulțumi"]
+    },
+    {
+      "en": "Do you have this in a bigger size?",
+      "ro": "Aveți asta într-o mărime mai mare?",
+      "lemmas": ["avea", "mărime", "mare"]
+    },
+    {
+      "en": "Can I try it on?",
+      "ro": "Pot să o probez?",
+      "lemmas": ["putea", "proba"]
+    },
+    {
+      "en": "It's a bit tight on me.",
+      "ro": "Îmi vine puțin strâmt.",
+      "note": "\"Îmi vine\" is how you say clothes fit you.",
+      "lemmas": ["veni", "puțin", "strâmt"]
+    },
+    {
+      "en": "I'm just looking, thank you.",
+      "ro": "Mă uit doar, mulțumesc.",
+      "lemmas": ["uita", "mulțumi"]
+    },
+    {
+      "en": "Where do I find the checkout?",
+      "ro": "Unde găsesc casa?",
+      "note": "\"Casa\" here is the till, not a house — context makes it clear.",
+      "lemmas": ["unde", "găsi", "casă"]
+    },
+    {
+      "en": "Do you accept cards here?",
+      "ro": "Acceptați carduri aici?",
+      "lemmas": ["accepta", "card", "aici"]
+    },
+    {
+      "en": "I think you gave me the wrong change.",
+      "ro": "Cred că mi-ați dat rest greșit.",
+      "lemmas": ["crede", "da", "rest", "greșit"]
+    },
+    {
+      "en": "This milk is out of date.",
+      "ro": "Laptele ăsta e expirat.",
+      "lemmas": ["lapte", "expirat"]
+    },
+    {
+      "en": "I'd like to return this shirt.",
+      "ro": "Aș vrea să returnez cămașa asta.",
+      "lemmas": ["vrea", "returna", "cămașă"]
+    },
+    {
+      "en": "Here's the receipt.",
+      "ro": "Poftim bonul.",
+      "note": "\"Bon\" is the shop receipt; \"poftim\" is what you say when handing something over.",
+      "lemmas": ["pofti", "bon"]
+    },
+    {
+      "en": "The shop doesn't open until nine.",
+      "ro": "Magazinul nu se deschide până la nouă.",
+      "lemmas": ["magazin", "deschide", "nouă"]
+    },
+    {
+      "en": "I forgot to buy sugar.",
+      "ro": "Am uitat să cumpăr zahăr.",
+      "lemmas": ["uita", "cumpăra", "zahăr"]
+    },
+    {
+      "en": "Can you give me a smaller one?",
+      "ro": "Îmi puteți da unul mai mic?",
+      "lemmas": ["putea", "da", "mic"]
+    }
+  ]
+}

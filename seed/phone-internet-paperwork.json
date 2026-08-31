@@ -1,0 +1,115 @@
+{
+  "island": {
+    "name": "Phone, internet & paperwork",
+    "emoji": "📱",
+    "level": "A2",
+    "description": "Phone calls, mobile and internet contracts, banks and official offices."
+  },
+  "sentences": [
+    {
+      "en": "Hello, who's speaking?",
+      "ro": "Alo, cine e la telefon?",
+      "lemmas": ["cine", "telefon"]
+    },
+    {
+      "en": "I can't hear you, the signal is bad.",
+      "ro": "Nu te aud, am semnal prost.",
+      "lemmas": ["auzi", "semnal", "prost"]
+    },
+    {
+      "en": "Can you call me back in ten minutes?",
+      "ro": "Poți să mă suni peste zece minute?",
+      "note": "\"Peste\" + time = in / after that much time.",
+      "lemmas": ["putea", "suna", "minut"]
+    },
+    {
+      "en": "I'll write you a message instead.",
+      "ro": "Îți scriu un mesaj în schimb.",
+      "lemmas": ["scrie", "mesaj", "schimb"]
+    },
+    {
+      "en": "My phone battery is almost dead.",
+      "ro": "Mi se termină bateria la telefon.",
+      "lemmas": ["termina", "baterie", "telefon"]
+    },
+    {
+      "en": "What's the wifi password?",
+      "ro": "Care e parola de la wifi?",
+      "lemmas": ["parolă"]
+    },
+    {
+      "en": "The internet doesn't work since this morning.",
+      "ro": "Internetul nu merge de azi-dimineață.",
+      "lemmas": ["internet", "merge", "dimineață"]
+    },
+    {
+      "en": "I'd like to buy a SIM card.",
+      "ro": "Aș vrea să cumpăr o cartelă SIM.",
+      "note": "\"Cartelă\" is the word for a prepaid SIM.",
+      "lemmas": ["vrea", "cumpăra", "cartelă"]
+    },
+    {
+      "en": "How much does the subscription cost per month?",
+      "ro": "Cât costă abonamentul pe lună?",
+      "lemmas": ["costa", "abonament", "lună"]
+    },
+    {
+      "en": "I want to cancel my contract.",
+      "ro": "Vreau să îmi reziliez contractul.",
+      "lemmas": ["vrea", "rezilia", "contract"]
+    },
+    {
+      "en": "I need to open a bank account.",
+      "ro": "Trebuie să îmi deschid un cont la bancă.",
+      "lemmas": ["trebui", "deschide", "cont", "bancă"]
+    },
+    {
+      "en": "What documents do I need?",
+      "ro": "De ce acte am nevoie?",
+      "note": "\"Acte\" is the everyday word for official documents.",
+      "lemmas": ["act", "nevoie"]
+    },
+    {
+      "en": "Here is my passport and my residence permit.",
+      "ro": "Poftiți pașaportul și permisul de ședere.",
+      "note": "\"Poftiți\" is the polite form used with officials.",
+      "lemmas": ["pofti", "pașaport", "permis", "ședere"]
+    },
+    {
+      "en": "I don't understand this form.",
+      "ro": "Nu înțeleg formularul ăsta.",
+      "lemmas": ["înțelege", "formular"]
+    },
+    {
+      "en": "Where do I have to sign?",
+      "ro": "Unde trebuie să semnez?",
+      "lemmas": ["unde", "trebui", "semna"]
+    },
+    {
+      "en": "Can I do this online?",
+      "ro": "Pot să fac asta online?",
+      "lemmas": ["putea", "face"]
+    },
+    {
+      "en": "How long does it take?",
+      "ro": "Cât durează?",
+      "lemmas": ["dura"]
+    },
+    {
+      "en": "The office is closed on Friday afternoon.",
+      "ro": "Biroul e închis vineri după-amiază.",
+      "lemmas": ["birou", "închis", "vineri", "amiază"]
+    },
+    {
+      "en": "I've been waiting at the counter for an hour.",
+      "ro": "Aștept la ghișeu de o oră.",
+      "note": "Romanian uses the present with \"de\" where English uses \"have been -ing\".",
+      "lemmas": ["aștepta", "ghișeu", "oră"]
+    },
+    {
+      "en": "Please send me the confirmation by email.",
+      "ro": "Vă rog să îmi trimiteți confirmarea pe email.",
+      "lemmas": ["ruga", "trimite", "confirmare"]
+    }
+  ]
+}

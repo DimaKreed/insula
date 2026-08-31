@@ -1,0 +1,117 @@
+{
+  "island": {
+    "name": "Restaurant & café",
+    "emoji": "🍽️",
+    "level": "A1",
+    "description": "Ordering food and drinks, asking about the menu, complaining politely and paying."
+  },
+  "sentences": [
+    {
+      "en": "A table for two, please.",
+      "ro": "O masă pentru două persoane, vă rog.",
+      "note": "Staff are addressed with \"vă rog\" (formal) even if you use \"tu\" elsewhere.",
+      "lemmas": ["masă", "persoană", "ruga"]
+    },
+    {
+      "en": "Can I see the menu, please?",
+      "ro": "Pot să văd meniul, vă rog?",
+      "lemmas": ["putea", "vedea", "meniu", "ruga"]
+    },
+    {
+      "en": "I'd like a coffee with milk, please.",
+      "ro": "Aș vrea o cafea cu lapte, vă rog.",
+      "note": "\"Aș vrea\" is the polite default for ordering — softer than \"vreau\".",
+      "lemmas": ["vrea", "cafea", "lapte", "ruga"]
+    },
+    {
+      "en": "What do you recommend today?",
+      "ro": "Ce îmi recomandați astăzi?",
+      "lemmas": ["recomanda", "astăzi"]
+    },
+    {
+      "en": "Is this dish spicy?",
+      "ro": "Mâncarea asta e picantă?",
+      "lemmas": ["mâncare", "picant"]
+    },
+    {
+      "en": "I don't eat meat, do you have something vegetarian?",
+      "ro": "Nu mănânc carne, aveți ceva vegetarian?",
+      "lemmas": ["mânca", "carne", "avea", "vegetarian"]
+    },
+    {
+      "en": "I'll have the soup and a glass of water.",
+      "ro": "Iau supa și un pahar cu apă.",
+      "note": "\"Un pahar cu apă\" (a glass with water) is what people actually say.",
+      "lemmas": ["lua", "supă", "pahar", "apă"]
+    },
+    {
+      "en": "Still water, not sparkling.",
+      "ro": "Apă plată, nu minerală.",
+      "lemmas": ["apă", "plat", "mineral"]
+    },
+    {
+      "en": "How long do I have to wait?",
+      "ro": "Cât trebuie să aștept?",
+      "lemmas": ["trebui", "aștepta"]
+    },
+    {
+      "en": "This isn't what I ordered.",
+      "ro": "Nu asta am comandat.",
+      "lemmas": ["comanda"]
+    },
+    {
+      "en": "The food is really good, thank you.",
+      "ro": "Mâncarea e foarte bună, mulțumesc.",
+      "lemmas": ["mâncare", "bun", "mulțumi"]
+    },
+    {
+      "en": "Could you bring me some bread, please?",
+      "ro": "Îmi puteți aduce niște pâine, vă rog?",
+      "lemmas": ["putea", "aduce", "pâine", "ruga"]
+    },
+    {
+      "en": "I'm allergic to nuts.",
+      "ro": "Sunt alergic la nuci.",
+      "note": "A woman says \"alergică\".",
+      "lemmas": ["alergic", "nucă"]
+    },
+    {
+      "en": "The coffee is cold, can you change it?",
+      "ro": "Cafeaua e rece, o puteți schimba?",
+      "lemmas": ["cafea", "rece", "putea", "schimba"]
+    },
+    {
+      "en": "Can I have this to go?",
+      "ro": "Pot să iau asta la pachet?",
+      "note": "\"La pachet\" is the fixed phrase for takeaway.",
+      "lemmas": ["putea", "lua", "pachet"]
+    },
+    {
+      "en": "The bill, please.",
+      "ro": "Nota, vă rog.",
+      "note": "\"Nota\" (de plată) — not \"factura\", which means an invoice.",
+      "lemmas": ["notă", "ruga"]
+    },
+    {
+      "en": "Can I pay by card?",
+      "ro": "Pot să plătesc cu cardul?",
+      "lemmas": ["putea", "plăti", "card"]
+    },
+    {
+      "en": "We're paying separately.",
+      "ro": "Plătim separat.",
+      "lemmas": ["plăti", "separat"]
+    },
+    {
+      "en": "Keep the change.",
+      "ro": "Păstrați restul.",
+      "lemmas": ["păstra", "rest"]
+    },
+    {
+      "en": "I'm not hungry, just a tea for me.",
+      "ro": "Nu mi-e foame, doar un ceai pentru mine.",
+      "note": "Hunger uses \"a fi\" with a dative pronoun: \"mi-e foame\" = I am hungry.",
+      "lemmas": ["foame", "ceai"]
+    }
+  ]
+}

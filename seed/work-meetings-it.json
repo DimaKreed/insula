@@ -1,0 +1,114 @@
+{
+  "island": {
+    "name": "Work & meetings (IT)",
+    "emoji": "💻",
+    "level": "A2",
+    "description": "Standups, code review, deadlines and everyday office talk for a developer."
+  },
+  "sentences": [
+    {
+      "en": "Good morning, shall we start the meeting?",
+      "ro": "Bună dimineața, începem ședința?",
+      "note": "\"Ședință\" is the standard word for a work meeting.",
+      "lemmas": ["dimineață", "începe", "ședință"]
+    },
+    {
+      "en": "Can you hear me well?",
+      "ro": "Mă auzi bine?",
+      "lemmas": ["auzi", "bine"]
+    },
+    {
+      "en": "Yesterday I finished the login page.",
+      "ro": "Ieri am terminat pagina de login.",
+      "lemmas": ["ieri", "termina", "pagină"]
+    },
+    {
+      "en": "Today I'm working on the database.",
+      "ro": "Azi lucrez la baza de date.",
+      "lemmas": ["azi", "lucra", "bază", "dată"]
+    },
+    {
+      "en": "I have a problem with the server.",
+      "ro": "Am o problemă cu serverul.",
+      "lemmas": ["avea", "problemă", "server"]
+    },
+    {
+      "en": "The tests don't pass on my machine.",
+      "ro": "Testele nu trec pe calculatorul meu.",
+      "lemmas": ["test", "trece", "calculator"]
+    },
+    {
+      "en": "Can you review my pull request?",
+      "ro": "Poți să îmi verifici pull request-ul?",
+      "note": "English tech terms take Romanian articles with a hyphen: \"pull request-ul\".",
+      "lemmas": ["putea", "verifica"]
+    },
+    {
+      "en": "I'll send you the code this evening.",
+      "ro": "Îți trimit codul diseară.",
+      "lemmas": ["trimite", "cod", "diseară"]
+    },
+    {
+      "en": "When is the deadline for this task?",
+      "ro": "Când e termenul pentru task-ul ăsta?",
+      "lemmas": ["când", "termen"]
+    },
+    {
+      "en": "I think we need another day.",
+      "ro": "Cred că mai avem nevoie de o zi.",
+      "lemmas": ["crede", "nevoie", "zi"]
+    },
+    {
+      "en": "Sorry, I'm five minutes late.",
+      "ro": "Scuze, întârzii cinci minute.",
+      "lemmas": ["scuză", "întârzia", "cinci", "minut"]
+    },
+    {
+      "en": "I don't understand the requirement.",
+      "ro": "Nu înțeleg cerința.",
+      "lemmas": ["înțelege", "cerință"]
+    },
+    {
+      "en": "Who is responsible for this part?",
+      "ro": "Cine răspunde de partea asta?",
+      "lemmas": ["cine", "răspunde", "parte"]
+    },
+    {
+      "en": "Let's talk about it after the call.",
+      "ro": "Hai să vorbim după ședință.",
+      "note": "\"Hai să\" is the natural \"let's\" in speech.",
+      "lemmas": ["vorbi", "ședință"]
+    },
+    {
+      "en": "I'm working from home today.",
+      "ro": "Azi lucrez de acasă.",
+      "lemmas": ["lucra", "acasă"]
+    },
+    {
+      "en": "The client wants a change in the design.",
+      "ro": "Clientul vrea o schimbare în design.",
+      "lemmas": ["client", "vrea", "schimbare", "design"]
+    },
+    {
+      "en": "Can we move the meeting to three o'clock?",
+      "ro": "Putem muta ședința la ora trei?",
+      "lemmas": ["putea", "muta", "ședință", "oră", "trei"]
+    },
+    {
+      "en": "I'm taking two days off next week.",
+      "ro": "Îmi iau două zile libere săptămâna viitoare.",
+      "note": "\"Zile libere\" = days off; \"concediu\" is a longer holiday.",
+      "lemmas": ["lua", "zi", "liber", "săptămână", "viitor"]
+    },
+    {
+      "en": "I can't join, I have another call.",
+      "ro": "Nu pot să particip, am altă ședință.",
+      "lemmas": ["putea", "participa", "ședință"]
+    },
+    {
+      "en": "Thanks everyone, good work today.",
+      "ro": "Mulțumesc tuturor, treabă bună azi.",
+      "lemmas": ["mulțumi", "treabă", "bun"]
+    }
+  ]
+}

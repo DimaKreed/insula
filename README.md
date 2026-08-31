@@ -55,7 +55,8 @@ npm run dev                  # http://localhost:3000
 
 | Script | Does |
 |---|---|
-| `npm run dev` / `build` / `start` | Next.js |
+| `npm run dev` / `build` / `start` | Next.js (dev uses webpack — see Troubleshooting) |
+| `npm run dev:turbo` | Next.js dev with Turbopack (needs the native SWC binary) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run bakeoff` | TTS bake-off (Phase 0) |
@@ -142,3 +143,28 @@ The skill lives at `.claude/skills/romanian-islands/SKILL.md`. Seeding is
 idempotent by island name, so re-runs only add what is new. `seed/*.json` stays
 the source of truth — Phase 5 converts the same files into shared preset islands.
 For all 12 starter topics at once, use [[Prompt — Seed 12 Islands]].
+
+## Troubleshooting
+
+### `An Application Control policy has blocked this file` (next-swc)
+
+Windows **Smart App Control** blocks the unsigned `@next/swc-win32-x64-msvc`
+native binary, so Next.js falls back to its WASM build — which Turbopack does not
+support (`turbo.createProject is not supported by the wasm bindings`).
+
+`npm run dev` therefore uses webpack, which works fine with the WASM fallback:
+first compile ~15s, page compiles ~0.3–1.3s. The two SWC warnings on startup are
+expected and harmless.
+
+To get Turbopack (and native-speed builds) locally you would have to turn Smart
+App Control off — Windows Security → App & browser control → Smart App Control.
+**That is effectively one-way: it cannot be re-enabled without reinstalling
+Windows.** Check its state with:
+
+```powershell
+Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy' |
+  Select-Object VerifiedAndReputablePolicyState   # 0 off, 1 enforced, 2 evaluation
+```
+
+`npm run build` keeps `--turbopack`: Vercel builds on Linux, where the native
+binary loads normally. Locally, build with `npx next build` (no flag) if needed.

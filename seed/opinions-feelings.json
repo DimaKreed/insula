@@ -1,0 +1,117 @@
+{
+  "island": {
+    "name": "Opinions & feelings",
+    "emoji": "💬",
+    "level": "A2",
+    "description": "Agreeing and disagreeing, liking and disliking, saying how you feel."
+  },
+  "sentences": [
+    {
+      "en": "I think you're right.",
+      "ro": "Cred că ai dreptate.",
+      "note": "Being right uses \"a avea\": \"ai dreptate\" = you have rightness.",
+      "lemmas": ["crede", "avea", "dreptate"]
+    },
+    {
+      "en": "I don't agree with you.",
+      "ro": "Nu sunt de acord cu tine.",
+      "lemmas": ["acord"]
+    },
+    {
+      "en": "What do you think about this?",
+      "ro": "Tu ce părere ai despre asta?",
+      "note": "\"A avea o părere\" is the normal way to have an opinion.",
+      "lemmas": ["părere", "avea"]
+    },
+    {
+      "en": "I like this song a lot.",
+      "ro": "Îmi place mult melodia asta.",
+      "note": "\"A plăcea\" works backwards: the thing pleases me.",
+      "lemmas": ["plăcea", "mult", "melodie"]
+    },
+    {
+      "en": "I don't like waiting.",
+      "ro": "Nu îmi place să aștept.",
+      "lemmas": ["plăcea", "aștepta"]
+    },
+    {
+      "en": "I'm really happy today.",
+      "ro": "Sunt foarte fericit astăzi.",
+      "note": "A woman says \"fericită\".",
+      "lemmas": ["fericit", "astăzi"]
+    },
+    {
+      "en": "I'm a bit sad, but it will pass.",
+      "ro": "Sunt puțin trist, dar o să treacă.",
+      "lemmas": ["puțin", "trist", "trece"]
+    },
+    {
+      "en": "That makes me angry.",
+      "ro": "Asta mă enervează.",
+      "lemmas": ["enerva"]
+    },
+    {
+      "en": "I'm afraid of dogs.",
+      "ro": "Mi-e frică de câini.",
+      "note": "Fear uses a dative pronoun with \"a fi\": \"mi-e frică\".",
+      "lemmas": ["frică", "câine"]
+    },
+    {
+      "en": "Why are you so quiet?",
+      "ro": "De ce ești așa tăcut?",
+      "lemmas": ["tăcut"]
+    },
+    {
+      "en": "It seems like a good idea to me.",
+      "ro": "Mi se pare o idee bună.",
+      "lemmas": ["părea", "idee", "bun"]
+    },
+    {
+      "en": "Honestly, I find it boring.",
+      "ro": "Sincer, mi se pare plictisitor.",
+      "lemmas": ["sincer", "părea", "plictisitor"]
+    },
+    {
+      "en": "Maybe you're right, I'm not sure.",
+      "ro": "Poate ai dreptate, nu sunt sigur.",
+      "lemmas": ["putea", "dreptate", "sigur"]
+    },
+    {
+      "en": "I'm worried about tomorrow.",
+      "ro": "Sunt îngrijorat pentru mâine.",
+      "lemmas": ["îngrijorat", "mâine"]
+    },
+    {
+      "en": "Don't worry, everything is fine.",
+      "ro": "Nu îți face griji, totul e în regulă.",
+      "note": "\"În regulă\" = all right, OK.",
+      "lemmas": ["face", "grijă", "regulă"]
+    },
+    {
+      "en": "I'm proud of you.",
+      "ro": "Sunt mândru de tine.",
+      "lemmas": ["mândru"]
+    },
+    {
+      "en": "It doesn't matter to me.",
+      "ro": "Nu contează pentru mine.",
+      "lemmas": ["conta"]
+    },
+    {
+      "en": "I'd rather stay home tonight.",
+      "ro": "Aș prefera să rămân acasă diseară.",
+      "lemmas": ["prefera", "rămâne", "acasă", "diseară"]
+    },
+    {
+      "en": "Are you upset with me?",
+      "ro": "Ești supărat pe mine?",
+      "note": "\"Supărat pe\" — the preposition is \"pe\", not \"cu\".",
+      "lemmas": ["supărat"]
+    },
+    {
+      "en": "That's exactly what I wanted to say.",
+      "ro": "Exact asta voiam să spun.",
+      "lemmas": ["exact", "vrea", "spune"]
+    }
+  ]
+}
