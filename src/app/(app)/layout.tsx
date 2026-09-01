@@ -12,13 +12,14 @@ export default async function AppLayout({
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
 
-  const { name, email, tier } = session.user;
+  const { name, email, tier, role } = session.user;
 
   return (
     <div className="flex min-h-dvh bg-bg text-ink">
       <Sidebar
         name={name ?? email}
         planLabel={tier === 'pro' ? 'Pro plan' : 'Free plan'}
+        isAdmin={role === 'admin'}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex-1">{children}</div>

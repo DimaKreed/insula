@@ -133,3 +133,78 @@ export function checkIslandQuota(
     message: `You've generated all ${limits.islandsGenerated} starter islands on your plan this month. You can still add your own sentences to any island — that's the part that matters.`,
   };
 }
+
+// --- Off-topic generation enforcement --------------------------------------
+
+/**
+ * A free-text brief is also a free proxy to the model, so a brief that is not a
+ * language-learning request at all is refused (the decision comes back from the
+ * generation call itself) and the attempt is recorded.
+ *
+ * Escalation is deliberately shallow and plateaus, so there is no permanent
+ * state to unpick by hand: first offence buys an hour, every one after that two
+ * weeks. Offences stop counting after the window, because a single misfire of
+ * the classifier must not leave someone one step from a long block forever.
+ */
+export const OFFENCE_WINDOW_DAYS = 90;
+export const FIRST_OFFENCE_COOLDOWN_MS = 60 * 60 * 1000;
+export const REPEAT_OFFENCE_BLOCK_MS = 14 * 24 * 60 * 60 * 1000;
+
+export type GenerationBlock =
+  | { blocked: false }
+  | { blocked: true; until: Date; message: string };
+
+/**
+ * Whether generation is currently closed for a user, derived from their recent
+ * offences rather than from a stored counter — the offence that causes a penalty
+ * is also the row that dates it, so there is nothing to keep in sync. Mirrors
+ * how the daily new-card count is read out of `review_logs`.
+ *
+ * Pass every offence date inside the window; order does not matter. Only
+ * generation is gated: capture, review and playback are never affected.
+ */
+export function generationBlock(
+  offenceDates: Date[],
+  now: Date,
+  limits: PlanLimits | null,
+): GenerationBlock {
+  if (limits === null) return { blocked: false }; // admin is exempt
+  const cutoff = now.getTime() - OFFENCE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  const times = offenceDates
+    .map((d) => d.getTime())
+    .filter((t) => t > cutoff);
+  if (times.length === 0) return { blocked: false };
+
+  const penalty =
+    times.length === 1 ? FIRST_OFFENCE_COOLDOWN_MS : REPEAT_OFFENCE_BLOCK_MS;
+  const until = new Date(Math.max(...times) + penalty);
+  if (until.getTime() <= now.getTime()) return { blocked: false };
+
+  return {
+    blocked: true,
+    until,
+    message:
+      times.length === 1
+        ? `Generating topics is paused for an hour, until ${formatUntil(until)}, because your last request wasn't about something you want to be able to say. You can still add your own sentences to any island.`
+        : `Generating topics is blocked until ${formatUntil(until)} after repeated off-topic requests. You can still add your own sentences to any island.`,
+  };
+}
+
+/**
+ * The warning shown with a refusal — it has to name what happens next time, or
+ * a block two weeks long arrives with no notice.
+ */
+export function offenceWarning(offencesIncludingThis: number): string {
+  return offencesIncludingThis <= 1
+    ? 'Generating topics is paused for an hour. If it happens again, it will be blocked for two weeks.'
+    : 'Generating topics is now blocked for two weeks.';
+}
+
+function formatUntil(until: Date): string {
+  return until.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}

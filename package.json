@@ -17,6 +17,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed-islands.ts",
+    "presets:seed": "tsx scripts/seed-presets.ts",
+    "presets:link": "tsx scripts/link-seeded-presets.ts",
+    "admin": "tsx scripts/promote-admin.ts",
+    "generate:verify": "tsx scripts/generate-verify.ts",
     "test": "vitest run"
   },
   "dependencies": {

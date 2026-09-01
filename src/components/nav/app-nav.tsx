@@ -8,6 +8,7 @@ import {
   PresetsIcon,
   ReviewIcon,
   SettingsIcon,
+  SparkIcon,
   TranscriptsIcon,
   Wordmark,
 } from '@/components/icons';
@@ -21,7 +22,7 @@ import {
 const TABS = [
   { href: '/islands', label: 'Islands', Icon: IslandsIcon, live: true },
   { href: '/review', label: 'Review', Icon: ReviewIcon, live: true },
-  { href: '/presets', label: 'Presets', Icon: PresetsIcon, live: false },
+  { href: '/presets', label: 'Topics', Icon: PresetsIcon, live: true },
   {
     href: '/transcripts',
     label: 'Transcripts',
@@ -87,9 +88,12 @@ export function TabBar() {
 export function Sidebar({
   name,
   planLabel,
+  isAdmin = false,
 }: {
   name: string;
   planLabel: string;
+  /** Adds the preset-builder link. Desktop only — the tab bar is already full. */
+  isAdmin?: boolean;
 }) {
   const isActive = useActive();
   const initials = name
@@ -145,6 +149,20 @@ export function Sidebar({
       </nav>
 
       <div className="flex-1" />
+
+      {isAdmin ? (
+        <Link
+          href="/admin/presets"
+          className={`mb-1 flex h-10 items-center gap-[11px] rounded-[10px] px-3 text-sm font-medium ${
+            isActive('/admin')
+              ? 'bg-surface2 font-semibold text-ink'
+              : 'text-ink3'
+          }`}
+        >
+          <SparkIcon size={19} />
+          <span className="flex-1">Preset builder</span>
+        </Link>
+      ) : null}
 
       <div className="flex items-center gap-2.5 border-t border-line px-3 py-2.5">
         <div className="flex size-8 items-center justify-center rounded-full bg-sand-soft text-xs font-bold text-sand-ink">

@@ -18,9 +18,18 @@ export interface SentenceWithAudio extends Sentence {
   audioDurationMs: number | null;
 }
 
+/**
+ * `newest` puts the most recent capture on top, which is what a capture-driven
+ * island wants. `narrative` keeps the island's own order, which is what a
+ * generated or imported one wants: those sentences are deliberately sequenced
+ * to walk through a situation, and reversing them shows the goodbye first.
+ */
+export type SentenceOrder = 'newest' | 'narrative';
+
 export async function listSentences(
   userId: string,
   islandId: string,
+  order: SentenceOrder = 'newest',
 ): Promise<SentenceWithAudio[]> {
   const db = getDb();
   const rows = await db
@@ -32,7 +41,9 @@ export async function listSentences(
     .from(sentences)
     .leftJoin(audioAssets, eq(audioAssets.id, sentences.targetAudioId))
     .where(and(eq(sentences.islandId, islandId), eq(sentences.userId, userId)))
-    .orderBy(desc(sentences.position));
+    .orderBy(
+      order === 'narrative' ? asc(sentences.position) : desc(sentences.position),
+    );
 
   return rows.map((r) => ({
     ...r.sentence,
@@ -52,6 +63,8 @@ export async function sentenceStatuses(userId: string, islandId: string) {
     })
     .from(sentences)
     .where(and(eq(sentences.islandId, islandId), eq(sentences.userId, userId)))
+    // Order is irrelevant here — `statusFingerprint` sorts by id — but a stable
+    // one keeps the polling response byte-identical between requests.
     .orderBy(desc(sentences.position));
 }
 

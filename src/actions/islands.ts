@@ -97,5 +97,37 @@ export async function archiveIsland(input: unknown): Promise<ActionResult> {
   if (updated.length === 0) return failed('Island not found.');
 
   revalidatePath('/islands');
+  // The topic this island came from becomes addable again once it is archived.
+  revalidatePath('/presets');
+  return done;
+}
+
+/**
+ * Puts an archived island back in the list.
+ *
+ * Archiving is only reversible if there is a way back, so this backs both the
+ * Undo in the archive toast and the Restore button in the Archived section. A
+ * topic the island came from also becomes addable again while it is archived —
+ * `importPresetIsland` upserts `preset_imports`, so re-adding after an archive
+ * works rather than colliding with the composite key.
+ */
+export async function unarchiveIsland(input: unknown): Promise<ActionResult> {
+  const parsed = z.object({ islandId: z.string().min(1) }).safeParse(input);
+  if (!parsed.success) return failed('Island not found.');
+
+  const user = await requireUser();
+  const db = getDb();
+  const updated = await db
+    .update(islands)
+    .set({ archivedAt: null, updatedAt: new Date() })
+    .where(
+      and(eq(islands.id, parsed.data.islandId), eq(islands.userId, user.id)),
+    )
+    .returning({ id: islands.id });
+
+  if (updated.length === 0) return failed('Island not found.');
+
+  revalidatePath('/islands');
+  revalidatePath('/presets');
   return done;
 }

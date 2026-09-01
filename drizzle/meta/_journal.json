@@ -29,6 +29,13 @@
       "when": 1788292127436,
       "tag": "0003_phase5_presets",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788297510669,
+      "tag": "0004_generation_offences",
+      "breakpoints": true
     }
   ]
 }

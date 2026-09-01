@@ -1,4 +1,14 @@
-import { and, asc, count, eq, isNull, max, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  isNotNull,
+  isNull,
+  max,
+  sql,
+} from 'drizzle-orm';
 
 import { getDb } from '@/db';
 import { islands, sentences, type Island } from '@/db/schema';
@@ -59,4 +69,34 @@ export async function nextIslandPosition(userId: string): Promise<number> {
     .from(islands)
     .where(eq(islands.userId, userId));
   return (rows[0]?.maxPosition ?? -1) + 1;
+}
+
+/**
+ * Archived islands, newest first — what makes archiving reversible instead of a
+ * one-way trip into an invisible bin. `listIslands` filters these out, so the
+ * Archived section on the islands page is the only place they appear.
+ */
+export async function listArchivedIslands(
+  userId: string,
+): Promise<IslandListItem[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      island: islands,
+      sentenceCount: count(sentences.id),
+      translatedCount: sql<number>`count(${sentences.id}) filter (where ${sentences.targetText} is not null)`,
+      audioCount: sql<number>`count(${sentences.id}) filter (where ${sentences.targetAudioId} is not null)`,
+    })
+    .from(islands)
+    .leftJoin(sentences, eq(sentences.islandId, islands.id))
+    .where(and(eq(islands.userId, userId), isNotNull(islands.archivedAt)))
+    .groupBy(islands.id)
+    .orderBy(desc(islands.archivedAt));
+
+  return rows.map((r) => ({
+    ...r.island,
+    sentenceCount: Number(r.sentenceCount),
+    translatedCount: Number(r.translatedCount),
+    audioCount: Number(r.audioCount),
+  }));
 }

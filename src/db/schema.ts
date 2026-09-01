@@ -383,6 +383,33 @@ export const usageEvents = pgTable(
   (t) => [index('usage_events_user_idx').on(t.userId, t.createdAt)],
 );
 
+/**
+ * Briefs that were refused for not being a language-learning request at all.
+ *
+ * The enforcement state is NOT stored: no strike counter, no `blocked_until`.
+ * `generationBlock` in `src/lib/quota.ts` derives the penalty from these rows,
+ * so the offence that causes a block is also the row that dates it and there is
+ * nothing to keep in sync — the same reasoning that has the daily new-card count
+ * read out of `review_logs`.
+ *
+ * The brief is kept because it is the only way to tune the classifier and the
+ * only evidence behind a block a user might dispute.
+ */
+export const generationOffences = pgTable(
+  'generation_offences',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    brief: text('brief').notNull(),
+    /** The refusal the model gave, as shown to the user. */
+    reason: text('reason').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('generation_offences_user_idx').on(t.userId, t.createdAt)],
+);
+
 /** Rollup that quota checks read; bumped alongside usage_events. */
 export const usageMonthly = pgTable(
   'usage_monthly',

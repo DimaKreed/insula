@@ -104,6 +104,29 @@ export function voiceFor(
   );
 }
 
+/**
+ * The `audio_assets.content_hash` a text WOULD get under the current provider,
+ * voice and format — without synthesizing anything.
+ *
+ * Exported so a caller that only needs to FIND an existing recording uses the
+ * same recipe the synthesis path uses. Preset audio linking is the one such
+ * caller: a second copy of the hash recipe living in the preset code is exactly
+ * what would silently stop dedup working the day a voice or format changes.
+ */
+export function audioHashFor(
+  text: string,
+  lang: string,
+  role: AudioRole = 'target',
+): string {
+  const provider = getTtsProvider();
+  const { voiceId, lang: voiceLang } = voiceFor(
+    provider,
+    lang,
+    role === 'prompt' ? process.env.TTS_VOICE_EN : process.env.TTS_VOICE,
+  );
+  return audioHash(provider.name, voiceId, voiceLang, text, FORMAT);
+}
+
 async function loadUser(userId: string): Promise<JobUser> {
   const db = getDb();
   const rows = await db

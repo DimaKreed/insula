@@ -2,7 +2,8 @@
  * Island-generation quality spike — `npm run island:spike`.
  *
  * Generates one island through the app's own path (the configured translation
- * provider, `src/lib/ai/island.ts`) for a topic that already exists in `seed/`,
+ * provider, `src/lib/ai/island.ts`) from a free-text brief, and — when the
+ * resolved island name matches one that already exists in `seed/` —
  * and prints the two side by side. The seed files came from an Opus-class model
  * in a Claude Code session; the app runs on Gemini Flash. This script is how
  * that gap gets measured before any UI is built on top of it.
@@ -14,7 +15,10 @@
  * loads a generated island into an account exactly like a curated one.
  *
  * Usage:
- *   npm run island:spike -- [--topic="Restaurant & café"] [--hint="..."] [--save=path.json]
+ *   npm run island:spike -- --brief="..." [--name="..."] [--save=path.json]
+ *
+ * Also the scope gate's test harness: a brief that is not a language-learning
+ * request comes back rejected, and this prints the refusal instead of an island.
  */
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -30,7 +34,8 @@ for (const file of ['.env.local', '.env']) {
 
 const SEED_DIR = path.resolve('seed');
 const OUT_DIR = path.resolve('bakeoff-output', 'islands');
-const DEFAULT_TOPIC = 'Restaurant & café';
+const DEFAULT_BRIEF =
+  'I want to order food and drinks in a restaurant or a café, ask about the menu, complain politely, and pay.';
 
 interface Seed {
   island: { name: string; emoji?: string; level?: string; description?: string };
@@ -77,7 +82,7 @@ function line(label: string, a: string | number, b: string | number) {
   return `  ${label.padEnd(26)} ${String(a).padEnd(12)} ${b}`;
 }
 
-async function findSeed(topic: string): Promise<Seed | null> {
+async function findSeed(name: string): Promise<Seed | null> {
   const files = (await readdir(SEED_DIR).catch(() => [] as string[])).filter(
     (f) => f.endsWith('.json'),
   );
@@ -85,14 +90,14 @@ async function findSeed(topic: string): Promise<Seed | null> {
     const parsed = JSON.parse(
       await readFile(path.join(SEED_DIR, file), 'utf8'),
     ) as Seed;
-    if (parsed.island.name.toLowerCase() === topic.toLowerCase()) return parsed;
+    if (parsed.island.name.toLowerCase() === name.toLowerCase()) return parsed;
   }
   return null;
 }
 
 async function main() {
-  const topic = arg('topic') ?? DEFAULT_TOPIC;
-  const hint = arg('hint');
+  const brief = arg('brief') ?? DEFAULT_BRIEF;
+  const name = arg('name');
 
   const { generateIsland } = await import('../src/lib/ai/island');
   const { getTranslationProvider } = await import('../src/lib/translate/index');
@@ -106,17 +111,31 @@ async function main() {
     process.exit(1);
   }
 
-  const seed = await findSeed(topic);
   console.log(
-    `\ntopic: ${topic}\nprovider: ${provider.name}${hint ? `\nhint: ${hint}` : ''}\nseed baseline: ${seed ? `${seed.sentences.length} sentences` : 'none for this topic'}\n`,
+    `\nbrief: ${brief}\nprovider: ${provider.name}${name ? `\nname: ${name}` : ''}\n`,
   );
 
   const started = Date.now();
-  const generated = await generateIsland({ topic, hint });
+  const result = await generateIsland({ brief, name });
   const elapsed = Date.now() - started;
 
   console.log(
-    `model: ${generated.model} (prompt ${generated.promptVersion}) in ${(elapsed / 1000).toFixed(1)}s`,
+    `model: ${result.model} (prompt ${result.promptVersion}) in ${(elapsed / 1000).toFixed(1)}s`,
+  );
+  console.log(`assessment: ${result.assessment || '(none)'}`);
+
+  if (result.kind === 'rejected') {
+    console.log(`\n⊘ REJECTED\n  ${result.reason}\n`);
+    const { inputTokens, outputTokens } = result.usage;
+    console.log(`tokens: ${inputTokens} in / ${outputTokens} out\n`);
+    return;
+  }
+
+  const generated = result;
+  // Compare against a curated island only when this brief resolved to one.
+  const seed = await findSeed(generated.name);
+  console.log(
+    `seed baseline: ${seed ? `${seed.sentences.length} sentences` : 'none for this name'}`,
   );
   console.log(
     `island: ${generated.emoji ?? ''} ${generated.name} [${generated.level ?? '?'}] — ${generated.description ?? ''}\n`,
@@ -182,7 +201,7 @@ async function main() {
   const stamp = new Date().toISOString().slice(11, 19).replace(/:/gu, '');
   const outPath =
     arg('save') ??
-    path.join(OUT_DIR, `${slug(topic)}-${generated.model}-${stamp}.json`);
+    path.join(OUT_DIR, `${slug(generated.name)}-${generated.model}-${stamp}.json`);
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(
     outPath,

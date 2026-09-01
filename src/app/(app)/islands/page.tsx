@@ -3,20 +3,27 @@ import Link from 'next/link';
 import { requireUser } from '@/auth';
 import { PlayIcon } from '@/components/icons';
 import { DownloadButton } from '@/components/islands/download-button';
-import { NewIsland } from '@/components/islands/new-island';
-import { listIslands, type IslandListItem } from '@/db/queries/islands';
+import { IslandMenu } from '@/components/islands/island-menu';
+import { RestoreIsland } from '@/components/islands/restore-island';
+import { StartIsland } from '@/components/islands/start-island';
+import {
+  listArchivedIslands,
+  listIslands,
+  type IslandListItem,
+} from '@/db/queries/islands';
+import { generationGate } from '@/lib/islands/generation-gate';
 
 export const metadata = { title: 'Islands · Insula' };
 
 /**
  * The island card from the Main artboard: the row itself opens the island, and
- * the two round buttons play it and save it for offline. They sit beside the
- * link rather than inside it — a button nested in an anchor is invalid markup
+ * the buttons beside it play it, save it offline and archive it. They sit beside
+ * the link rather than inside it — a button nested in an anchor is invalid markup
  * and taps land unpredictably on mobile.
  */
 function IslandRow({ island }: { island: IslandListItem }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 shadow-card">
+    <li className="flex items-center gap-2 rounded-2xl border border-line bg-surface p-3.5 shadow-card">
       <Link
         href={`/islands/${island.id}`}
         className="flex min-w-0 flex-1 items-center gap-3"
@@ -46,11 +53,55 @@ function IslandRow({ island }: { island: IslandListItem }) {
         </Link>
       ) : null}
       <DownloadButton islandId={island.id} audioCount={island.audioCount} />
+      <IslandMenu
+        islandId={island.id}
+        name={island.name}
+        sentenceCount={island.sentenceCount}
+      />
     </li>
   );
 }
 
-function EmptyState() {
+/**
+ * Archived islands, collapsed. Present only when there are any — an empty
+ * disclosure would just be furniture. This is what makes "archive" reversible
+ * rather than a one-way trip somewhere invisible.
+ */
+function ArchivedSection({ islands }: { islands: IslandListItem[] }) {
+  if (islands.length === 0) return null;
+
+  return (
+    <details className="mt-6 px-5 lg:px-0">
+      <summary className="cursor-pointer text-[12px] font-bold tracking-[1.2px] text-ink3 uppercase">
+        Archived ({islands.length})
+      </summary>
+      <ul className="mt-2.5 flex flex-col gap-2">
+        {islands.map((island) => (
+          <li
+            key={island.id}
+            className="flex items-center gap-3 rounded-2xl border border-line bg-surface2/50 p-3"
+          >
+            <div className="flex size-9 items-center justify-center rounded-lg bg-surface text-[18px] opacity-70">
+              {island.emoji ?? '🏝️'}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="truncate text-[14px] font-semibold text-ink2">
+                {island.name}
+              </span>
+              <span className="text-[12px] text-ink3">
+                {island.sentenceCount} sentence
+                {island.sentenceCount === 1 ? '' : 's'} kept
+              </span>
+            </div>
+            <RestoreIsland islandId={island.id} name={island.name} />
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function EmptyState({ start }: { start: React.ReactNode }) {
   const steps = [
     'Capture sentences from your day — in English.',
     'Insula translates them into Romanian, with natural audio.',
@@ -78,7 +129,7 @@ function EmptyState() {
             stroke="var(--teal)"
           />
           <path
-            d="M18 78c5-4 10-4 15 0s10 4 15 0 10-4 15 0 10 4 15 0 10-4 15 0"
+            d="M18 78c5-4 10-4 15 0s10 4 15 0 10-4 15 0 10 4 15 0"
             stroke="var(--teal)"
             opacity="0.5"
           />
@@ -99,16 +150,28 @@ function EmptyState() {
           ))}
         </ol>
       </div>
-      <div className="flex flex-col gap-3 px-6 pb-5">
-        <NewIsland variant="inline" />
-      </div>
+      <div className="flex flex-col gap-2.5 px-6 pb-5">{start}</div>
     </div>
   );
 }
 
 export default async function IslandsPage() {
   const user = await requireUser();
-  const islands = await listIslands(user.id);
+  const [islands, archived, gate] = await Promise.all([
+    listIslands(user.id),
+    listArchivedIslands(user.id),
+    generationGate(user),
+  ]);
+
+  // The same component in both branches. Splitting them is what hid generation
+  // from everyone who already had an island.
+  const start = (
+    <StartIsland
+      variant={islands.length === 0 ? 'inline' : 'fab'}
+      generationBlocked={gate.blocked}
+      blockedReason={gate.blocked ? gate.message : undefined}
+    />
+  );
 
   if (islands.length === 0) {
     return (
@@ -118,7 +181,8 @@ export default async function IslandsPage() {
             Islands
           </h1>
         </div>
-        <EmptyState />
+        <EmptyState start={start} />
+        <ArchivedSection islands={archived} />
       </main>
     );
   }
@@ -129,6 +193,9 @@ export default async function IslandsPage() {
         <h1 className="text-[28px] font-bold tracking-[-0.4px] lg:text-[30px] lg:tracking-[-0.5px]">
           Islands
         </h1>
+        <Link href="/presets" className="text-[13.5px] font-semibold text-teal">
+          Browse topics
+        </Link>
       </div>
 
       <ul className="flex flex-col gap-2.5 px-5 lg:grid lg:grid-cols-3 lg:gap-5 lg:px-0">
@@ -137,7 +204,8 @@ export default async function IslandsPage() {
         ))}
       </ul>
 
-      <NewIsland variant="fab" />
+      <ArchivedSection islands={archived} />
+      {start}
     </main>
   );
 }

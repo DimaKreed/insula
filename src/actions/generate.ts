@@ -6,31 +6,38 @@ import { z } from 'zod';
 
 import { requireAdmin, requireUser, type SessionUser } from '@/auth';
 import { getDb } from '@/db';
-import { nextIslandPosition } from '@/db/queries/islands';
-import { nextPresetPosition } from '@/db/queries/presets';
-import { createReviewStates } from '@/db/queries/review';
-import { cacheTranslations } from '@/db/queries/sentences';
-import { monthlyUsage, recordIslandGenerationUsage } from '@/db/queries/usage';
+import { recentOffenceDates, recordOffence } from '@/db/queries/generation';
+import { linkPresetAudio, nextPresetPosition } from '@/db/queries/presets';
 import {
-  islands,
-  presetIslands,
-  presetSentences,
-  sentences,
-} from '@/db/schema';
-import { generateIsland, type GeneratedIsland } from '@/lib/ai/island';
+  monthlyUsage,
+  recordIslandGenerationUsage,
+  recordRejectedGenerationUsage,
+} from '@/db/queries/usage';
+import { presetIslands, presetSentences } from '@/db/schema';
+import { generateIsland, type GenerationResult } from '@/lib/ai/island';
 import { startAudio } from '@/lib/audio/queue';
-import { translationHash } from '@/lib/hash';
-import { checkIslandQuota, limitsFor, yearMonth } from '@/lib/quota';
-import { getTranslationProvider } from '@/lib/translate';
+import {
+  generationGate,
+  offenceWindowStart,
+} from '@/lib/islands/generation-gate';
+import { createGeneratedIsland } from '@/lib/islands/generated';
+import {
+  checkIslandQuota,
+  limitsFor,
+  offenceWarning,
+  yearMonth,
+} from '@/lib/quota';
 
 import { failed, type ActionResult } from './result';
 
-/** Generation is English-to-Romanian only; the prompt is written for that pair. */
-const SOURCE_LANG = 'en';
-const TARGET_LANG = 'ro';
-
 /**
- * Island generation — topic plus an optional hint becomes 20 EN→RO sentences.
+ * Island generation — a free-text brief becomes 20 EN→RO sentences.
+ *
+ * The brief is untrusted free text, and a free-text box wired to a model is a
+ * free proxy to that model. The same call that writes the island also decides
+ * whether the brief is a language-learning request at all; a refusal is logged
+ * as an offence and escalates (`generationBlock` in `src/lib/quota.ts`). Only
+ * generation is ever gated — capture, review and playback are untouched.
  *
  * Two entry points over one generator: a user generates a private island in
  * their own account, an admin generates a published preset everyone can import.
@@ -38,21 +45,25 @@ const TARGET_LANG = 'ro';
  * with Romanian already attached, so translation is skipped and only TTS runs
  * behind `enqueue`.
  *
+ * The row-writing itself lives in `src/lib/islands/generated.ts`, free of
+ * `next/server`, so `npm run generate:verify` exercises this exact path from a
+ * plain script instead of reimplementing it.
+ *
  * A generated island is a scaffold, not the point. The method works because the
  * sentences are the learner's own, so the UI that calls this frames it as
  * "start a topic, then add your own" and every copy here says the same.
  */
 
 const inputSchema = z.object({
-  topic: z
+  brief: z
     .string()
     .trim()
-    .min(2, 'Give the island a topic.')
-    .max(80, 'Keep the topic under 80 characters.'),
-  hint: z
+    .min(10, 'Say a little more about what you want to be able to say.')
+    .max(600, 'Keep it under 600 characters.'),
+  name: z
     .string()
     .trim()
-    .max(300, 'Keep the hint under 300 characters.')
+    .max(60, 'Keep the name under 60 characters.')
     .optional()
     .transform((v) => (v === '' ? undefined : v)),
 });
@@ -60,9 +71,16 @@ const inputSchema = z.object({
 /**
  * Generates a private island in the caller's account.
  *
- * Order matters: the quota is checked BEFORE the model is called, like the
- * sentence quota, so a user at their cap never spends a request. The counter is
- * bumped only after the model has returned, so a failed generation is free.
+ * Order matters and is the same shape as the sentence quota:
+ *
+ *  1. block check, before anything else. Nothing is logged here — a blocked user
+ *     pressing the button again must not extend their own block;
+ *  2. quota check, still before the model, so someone at their cap never spends
+ *     a request;
+ *  3. the model;
+ *  4. a refusal costs an offence but no quota unit — nothing was generated;
+ *  5. the counter is bumped only once the model has returned, so a failure of
+ *     any kind is free.
  */
 export async function generateUserIsland(
   input: unknown,
@@ -71,63 +89,50 @@ export async function generateUserIsland(
   if (!parsed.success) return failed(parsed.error.issues[0].message);
 
   const user = await requireUser();
+
+  const block = await generationGate(user);
+  if (block.blocked) return failed(block.message);
+
   const period = yearMonth(new Date(), user.timezone);
   const quota = await checkQuota(user, period);
   if (!quota.allowed) return failed(quota.message);
 
-  let generated: GeneratedIsland;
+  let result: GenerationResult;
   try {
-    generated = await generateIsland(parsed.data);
+    result = await generateIsland(parsed.data);
   } catch (error) {
     return failed(generationMessage(error));
   }
 
-  const db = getDb();
-  const provider = getTranslationProvider().name;
-  const islandId = createId();
+  if (result.kind === 'rejected') {
+    await recordOffence({
+      userId: user.id,
+      brief: parsed.data.brief,
+      reason: result.reason,
+    });
+    // Re-read rather than counting in memory: the row just written is what the
+    // policy is derived from, so this reports the penalty actually in force.
+    const dates = await recentOffenceDates(user.id, offenceWindowStart());
+    // The tokens were spent even though nothing was created. Recorded without a
+    // sentence count, so the month's island counter is left alone.
+    await recordRejectedGenerationUsage({
+      userId: user.id,
+      yearMonth: period,
+      provider: result.provider,
+      model: result.model,
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+      cacheReadTokens: result.usage.cacheReadTokens,
+      costMicros: result.costMicros,
+    });
+    return failed(`${result.reason} ${offenceWarning(dates.length)}`);
+  }
 
-  const rows = generated.sentences.map((s, i) => ({
-    id: createId(),
-    islandId,
+  const generated = result;
+  const { islandId, sentenceIds } = await createGeneratedIsland({
     userId: user.id,
-    sourceText: s.en,
-    targetText: s.ro,
-    sourceLang: SOURCE_LANG,
-    targetLang: TARGET_LANG,
-    translationNote: s.note,
-    // Romanian is already here, so the row skips 'translating' entirely and
-    // goes straight into the TTS half of the pipeline.
-    status: 'translated' as const,
-    contentHash: translationHash(s.en, SOURCE_LANG, TARGET_LANG, provider),
-    origin: 'generated',
-    position: i,
-  }));
-
-  await db.insert(islands).values({
-    id: islandId,
-    userId: user.id,
-    name: generated.name,
-    emoji: generated.emoji ?? '🏝️',
-    description: generated.description,
-    sourceLang: SOURCE_LANG,
-    targetLang: TARGET_LANG,
-    origin: 'generated',
-    position: await nextIslandPosition(user.id),
+    generated,
   });
-
-  await db.insert(sentences).values(rows);
-
-  // Every sentence gets its FSRS card up front, in state New — the same
-  // invariant capture maintains.
-  await createReviewStates(
-    user.id,
-    rows.map((r) => r.id),
-    new Date(),
-  );
-
-  // Warm the global cache: if this user (or any other) later captures the same
-  // English sentence by hand, it costs no translation call.
-  await warmCache(rows, generated);
 
   await recordIslandGenerationUsage({
     userId: user.id,
@@ -141,14 +146,11 @@ export async function generateUserIsland(
     refId: islandId,
   });
 
-  await startAudio(rows.map((r) => r.id));
+  await startAudio(sentenceIds);
 
   revalidatePath('/islands');
   revalidatePath(`/islands/${islandId}`);
-  return {
-    ok: true,
-    data: { islandId, sentenceCount: rows.length },
-  };
+  return { ok: true, data: { islandId, sentenceCount: sentenceIds.length } };
 }
 
 /**
@@ -158,9 +160,12 @@ export async function generateUserIsland(
  * so no counter is checked here — but the generation is still recorded in
  * `usage_events` so preset content has the same audit trail as user content.
  *
- * The preset's own TTS runs against a throwaway holder island in the admin's
- * account: `audio_assets` is global and keyed by content hash, so the
- * recordings the holder produces are exactly the ones importers will link to.
+ * The preset's own TTS runs against a holder island in the admin's account:
+ * `audio_assets` is global and keyed by content hash, so the recordings the
+ * holder produces are exactly the ones importers will link to. Once synthesis
+ * finishes, `linkPresetAudio` draws the line from the preset rows to those
+ * assets — without it an import would re-synthesize, which is the one cost
+ * presets exist to avoid.
  */
 export async function generatePresetIsland(
   input: unknown,
@@ -170,15 +175,20 @@ export async function generatePresetIsland(
 
   const admin = await requireAdmin();
 
-  let generated: GeneratedIsland;
+  let result: GenerationResult;
   try {
-    generated = await generateIsland(parsed.data);
+    result = await generateIsland(parsed.data);
   } catch (error) {
     return failed(generationMessage(error));
   }
 
+  // A curator gets the refusal as feedback but is never strike-tracked: the
+  // escalation exists to stop anonymous abuse, not to police the person
+  // deciding what every learner sees.
+  if (result.kind === 'rejected') return failed(result.reason);
+
+  const generated = result;
   const db = getDb();
-  const provider = getTranslationProvider().name;
   const presetId = createId();
 
   await db.insert(presetIslands).values({
@@ -219,45 +229,22 @@ export async function generatePresetIsland(
     refId: presetId,
   });
 
-  const islandId = createId();
-  const rows = generated.sentences.map((s, i) => ({
-    id: createId(),
-    islandId,
+  const { sentenceIds } = await createGeneratedIsland({
     userId: admin.id,
-    sourceText: s.en,
-    targetText: s.ro,
-    translationNote: s.note,
-    status: 'translated' as const,
-    contentHash: translationHash(s.en, SOURCE_LANG, TARGET_LANG, provider),
-    origin: 'generated',
-    position: i,
-  }));
-
-  await db.insert(islands).values({
-    id: islandId,
-    userId: admin.id,
-    name: generated.name,
-    emoji: generated.emoji ?? '🏝️',
-    description: generated.description,
-    origin: 'generated',
+    generated,
     importedFromPresetId: presetId,
-    position: await nextIslandPosition(admin.id),
   });
-  await db.insert(sentences).values(rows);
-  await createReviewStates(
-    admin.id,
-    rows.map((r) => r.id),
-    new Date(),
-  );
-  await warmCache(rows, generated);
-  await startAudio(rows.map((r) => r.id));
+
+  await startAudio(sentenceIds, async () => {
+    const { linked, missing } = await linkPresetAudio(presetId);
+    console.log(
+      `[generate] preset ${presetId}: linked ${linked} recording(s), ${missing} still missing`,
+    );
+  });
 
   revalidatePath('/admin/presets');
   revalidatePath('/presets');
-  return {
-    ok: true,
-    data: { presetId, sentenceCount: rows.length },
-  };
+  return { ok: true, data: { presetId, sentenceCount: sentenceIds.length } };
 }
 
 // --- internals -------------------------------------------------------------
@@ -279,21 +266,4 @@ function generationMessage(error: unknown): string {
     error instanceof Error ? error.message : 'Island generation failed';
   console.error('[generate] failed', message);
   return `Couldn't generate that island: ${message.slice(0, 200)}`;
-}
-
-function warmCache(
-  rows: { contentHash: string; sourceText: string; targetText: string; translationNote: string | null }[],
-  generated: GeneratedIsland,
-) {
-  const lemmasByEn = new Map(
-    generated.sentences.map((s) => [s.en, s.lemmas]),
-  );
-  return cacheTranslations(
-    rows.map((r) => ({
-      contentHash: r.contentHash,
-      targetText: r.targetText,
-      translationNote: r.translationNote,
-      lemmas: lemmasByEn.get(r.sourceText) ?? [],
-    })),
-  );
 }

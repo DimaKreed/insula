@@ -126,6 +126,46 @@ export async function recordIslandGenerationUsage(u: IslandGenerationUsage) {
     });
 }
 
+/**
+ * A brief the model refused. Tokens and cost are recorded because they were
+ * spent, but `islands_generated` is deliberately NOT bumped: nothing was
+ * created, so a refusal must not cost the user one of their generations. The
+ * offence row in `generation_offences` is what carries the consequence.
+ */
+export async function recordRejectedGenerationUsage(
+  u: Omit<IslandGenerationUsage, 'refId'>,
+) {
+  const db = getDb();
+  await db.insert(usageEvents).values({
+    userId: u.userId,
+    kind: 'island_generation_rejected',
+    provider: u.provider,
+    model: u.model,
+    inputTokens: u.inputTokens,
+    outputTokens: u.outputTokens,
+    cacheReadTokens: u.cacheReadTokens,
+    costMicros: u.costMicros,
+  });
+
+  await db
+    .insert(usageMonthly)
+    .values({
+      userId: u.userId,
+      yearMonth: u.yearMonth,
+      aiInputTokens: u.inputTokens + u.cacheReadTokens,
+      aiOutputTokens: u.outputTokens,
+      costMicros: u.costMicros,
+    })
+    .onConflictDoUpdate({
+      target: [usageMonthly.userId, usageMonthly.yearMonth],
+      set: {
+        aiInputTokens: sql`${usageMonthly.aiInputTokens} + ${u.inputTokens + u.cacheReadTokens}`,
+        aiOutputTokens: sql`${usageMonthly.aiOutputTokens} + ${u.outputTokens}`,
+        costMicros: sql`${usageMonthly.costMicros} + ${u.costMicros}`,
+      },
+    });
+}
+
 export interface TtsUsage {
   userId: string;
   yearMonth: string;

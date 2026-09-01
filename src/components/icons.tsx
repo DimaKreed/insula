@@ -247,6 +247,16 @@ export function FlameIcon(p: Props) {
   );
 }
 
+/** Generation — a four-pointed spark, kept flatter than a star so it reads at 18px. */
+export function SparkIcon(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3.5 13.6 9 19 10.6 13.6 12.2 12 17.7 10.4 12.2 5 10.6 10.4 9 12 3.5Z" />
+      <path d="M18 16.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7.7-2.1Z" />
+    </Svg>
+  );
+}
+
 export function ChevronDownIcon(p: Props) {
   return (
     <Svg {...p}>

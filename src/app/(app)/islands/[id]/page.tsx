@@ -21,7 +21,13 @@ export default async function IslandDetailPage({
   const island = await getIsland(user.id, id);
   if (!island) notFound();
 
-  const sentences = await listSentences(user.id, island.id);
+  // A generated or imported island is sequenced on purpose — keep that order.
+  // A captured one reads best newest-first, so today's sentences are on top.
+  const sentences = await listSentences(
+    user.id,
+    island.id,
+    island.origin === 'user' ? 'newest' : 'narrative',
+  );
   const withAudio = sentences.filter((s) => s.audioUrl !== null).length;
   const pending = sentences.filter(
     (s) => s.status !== 'ready' && s.status !== 'error',
@@ -79,6 +85,20 @@ export default async function IslandDetailPage({
         ) : null}
       </div>
 
+      {island.origin !== 'user' ? (
+        <div className="mx-5 mb-1 flex flex-col gap-1 rounded-2xl border border-line bg-teal-soft/60 px-4 py-3 lg:mx-0">
+          <span className="text-[13.5px] font-semibold">
+            {island.origin === 'generated'
+              ? 'A starting point, not the finish line'
+              : 'Imported — now make it yours'}
+          </span>
+          <span className="text-[12.5px] leading-relaxed text-ink2">
+            These sentences came ready-made. The island starts paying off once
+            you add the ones you actually said today — add a couple below.
+          </span>
+        </div>
+      ) : null}
+
       <CaptureBox islandId={island.id} />
 
       <div className="flex items-center justify-between px-6 pt-4.5 pb-2 lg:px-0">
@@ -86,7 +106,9 @@ export default async function IslandDetailPage({
           Sentences
         </span>
         {sentences.length > 0 ? (
-          <span className="text-[12px] text-ink3">newest first</span>
+          <span className="text-[12px] text-ink3">
+            {island.origin === 'user' ? 'newest first' : 'in order'}
+          </span>
         ) : null}
       </div>
 
