@@ -3,10 +3,12 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '@/db';
 import {
   findAudioByHash,
+  linkPromptAudio,
   linkTargetAudio,
   markTtsQueued,
   saveAudioAsset,
   type AwaitingAudio,
+  type AwaitingPromptAudio,
 } from '@/db/queries/audio';
 import { monthlyUsage, recordTtsUsage } from '@/db/queries/usage';
 import { sentences, users } from '@/db/schema';
@@ -31,6 +33,23 @@ import { mp3DurationMs } from './mp3';
 
 /** What every adapter emits, and part of the audio hash. */
 const FORMAT = 'mp3';
+
+/**
+ * Which audio a job makes for its sentence: the Romanian the player speaks, or
+ * the English hint Listen mode plays in front of it (and Recall will play in
+ * Phase 4). One pipeline, one provider, one dedup table — the role only decides
+ * which text is spoken, in which voice, and which column the asset lands in.
+ */
+export type AudioRole = 'target' | 'prompt';
+
+interface SynthesisJob {
+  sentenceId: string;
+  userId: string;
+  role: AudioRole;
+  text: string;
+  /** The language the text is in — 'ro' for target, 'en' for prompt. */
+  lang: string;
+}
 
 export type OutcomeKind = 'synthesized' | 'deduped' | 'error';
 
@@ -58,16 +77,17 @@ interface JobUser {
 }
 
 /**
- * The voice a language is synthesized in: TTS_VOICE when set, otherwise the
+ * The voice a language is synthesized in: the override when set, otherwise the
  * configured provider's first voice for that language. A per-user voice choice
- * arrives with the settings page; until then one env var is the whole
- * configuration surface.
+ * arrives with the settings page; until then two env vars are the whole
+ * configuration surface — TTS_VOICE for the target language, TTS_VOICE_EN for
+ * the English hint, which must not inherit a Romanian override.
  */
 export function voiceFor(
   provider: TtsProvider,
   lang: string,
+  override: string | undefined = process.env.TTS_VOICE,
 ): { voiceId: string; lang: string } {
-  const override = process.env.TTS_VOICE;
   const voices = provider.voices();
   const match = override
     ? voices.find((v) => v.id === override)
@@ -80,7 +100,7 @@ export function voiceFor(
     return { voiceId: override, lang };
   }
   throw new Error(
-    `${provider.name} lists no voice for "${lang}" — set TTS_VOICE in .env.local`,
+    `${provider.name} lists no voice for "${lang}" — set TTS_VOICE (or TTS_VOICE_EN) in .env.local`,
   );
 }
 
@@ -112,23 +132,35 @@ async function markError(sentenceId: string, message: string) {
     .where(eq(sentences.id, sentenceId));
 }
 
-/** Synthesizes one sentence. Never throws — failures land on the row. */
+/** Synthesizes one job. Never throws — a target failure lands on the row. */
 async function synthesizeOne(
-  item: AwaitingAudio,
+  job: SynthesisJob,
   user: JobUser,
   provider: TtsProvider,
 ): Promise<Outcome> {
-  const { voiceId, lang } = voiceFor(provider, item.targetLang);
-  const hash = audioHash(provider.name, voiceId, lang, item.targetText, FORMAT);
+  const { voiceId, lang } = voiceFor(
+    provider,
+    job.lang,
+    job.role === 'prompt' ? process.env.TTS_VOICE_EN : process.env.TTS_VOICE,
+  );
+  const hash = audioHash(provider.name, voiceId, lang, job.text, FORMAT);
+
+  // A hint that cannot be made must not mark the sentence broken: its Romanian
+  // audio is fine, and Listen simply plays that sentence without a hint.
+  const fail = async (message: string): Promise<Outcome> => {
+    if (job.role === 'target') await markError(job.sentenceId, message);
+    return { sentenceId: job.sentenceId, kind: 'error', chars: 0, message };
+  };
+  const link = job.role === 'target' ? linkTargetAudio : linkPromptAudio;
 
   try {
     const cached = await findAudioByHash(hash);
     if (cached) {
-      await linkTargetAudio(item.id, cached.id);
-      return { sentenceId: item.id, kind: 'deduped', chars: 0 };
+      await link(job.sentenceId, cached.id);
+      return { sentenceId: job.sentenceId, kind: 'deduped', chars: 0 };
     }
 
-    const chars = item.targetText.length;
+    const chars = job.text.length;
     const period = yearMonth(new Date(), user.timezone);
     const used = await monthlyUsage(user.id, period);
     const quota = checkTtsQuota(
@@ -136,21 +168,9 @@ async function synthesizeOne(
       used?.ttsChars ?? 0,
       chars,
     );
-    if (!quota.allowed) {
-      await markError(item.id, quota.message);
-      return {
-        sentenceId: item.id,
-        kind: 'error',
-        chars: 0,
-        message: quota.message,
-      };
-    }
+    if (!quota.allowed) return fail(quota.message);
 
-    const result = await provider.synthesize({
-      text: item.targetText,
-      lang,
-      voiceId,
-    });
+    const result = await provider.synthesize({ text: job.text, lang, voiceId });
 
     const key = audioKey(hash);
     const { url } = await getStorage().put({
@@ -171,7 +191,7 @@ async function synthesizeOne(
       byteSize: result.audio.byteLength,
     });
 
-    await linkTargetAudio(item.id, asset.id);
+    await link(job.sentenceId, asset.id);
     await recordTtsUsage({
       userId: user.id,
       yearMonth: period,
@@ -179,15 +199,14 @@ async function synthesizeOne(
       voiceId,
       chars: result.charCount,
       costMicros: Math.round(result.charCount * provider.costMicrosPerChar),
-      refId: item.id,
+      refId: job.sentenceId,
     });
 
-    return { sentenceId: item.id, kind: 'synthesized', chars };
+    return { sentenceId: job.sentenceId, kind: 'synthesized', chars };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'TTS failed';
-    console.error('[tts] sentence failed', item.id, message);
-    await markError(item.id, message);
-    return { sentenceId: item.id, kind: 'error', chars: 0, message };
+    console.error('[tts]', job.role, 'failed', job.sentenceId, message);
+    return fail(message);
   }
 }
 
@@ -198,11 +217,12 @@ export interface RunOptions {
 }
 
 /**
- * Synthesizes a list of sentences with a small worker pool. The caller decides
- * where this runs: `after()` on capture, or the CLI backfill.
+ * Synthesizes a list of jobs with a small worker pool. The caller decides where
+ * this runs: `after()` on capture, the CLI backfill, or the server action that
+ * makes an island's English hints on demand.
  */
-export async function synthesizeSentences(
-  items: AwaitingAudio[],
+async function runJobs(
+  jobs: SynthesisJob[],
   options: RunOptions = {},
 ): Promise<Summary> {
   const summary: Summary = {
@@ -212,7 +232,7 @@ export async function synthesizeSentences(
     chars: 0,
     outcomes: [],
   };
-  if (items.length === 0) return summary;
+  if (jobs.length === 0) return summary;
 
   const provider = getTtsProvider();
   const config = provider.isConfigured();
@@ -237,11 +257,11 @@ export async function synthesizeSentences(
   const concurrency = Math.max(1, options.concurrency ?? 3);
 
   async function worker() {
-    while (cursor < items.length) {
-      const item = items[cursor++];
+    while (cursor < jobs.length) {
+      const job = jobs[cursor++];
       const outcome = await synthesizeOne(
-        item,
-        await userFor(item.userId),
+        job,
+        await userFor(job.userId),
         provider,
       );
 
@@ -252,14 +272,53 @@ export async function synthesizeSentences(
       else if (outcome.kind === 'deduped') summary.deduped += 1;
       else summary.errors += 1;
 
-      options.onOutcome?.(outcome, done, items.length);
+      options.onOutcome?.(outcome, done, jobs.length);
     }
   }
 
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, worker),
+    Array.from({ length: Math.min(concurrency, jobs.length) }, worker),
   );
   return summary;
+}
+
+/** Romanian audio for sentences that have none — capture and the backfill. */
+export function synthesizeSentences(
+  items: AwaitingAudio[],
+  options: RunOptions = {},
+): Promise<Summary> {
+  return runJobs(
+    items.map((item) => ({
+      sentenceId: item.id,
+      userId: item.userId,
+      role: 'target' as const,
+      text: item.targetText,
+      lang: item.targetLang,
+    })),
+    options,
+  );
+}
+
+/**
+ * English hint audio for sentences that have none. Generated lazily rather than
+ * at capture: most sentences graduate out of needing a hint before they are
+ * ever asked for one, so synthesizing the whole corpus up front would spend
+ * TTS characters on audio that never plays.
+ */
+export function synthesizePromptAudio(
+  items: AwaitingPromptAudio[],
+  options: RunOptions = {},
+): Promise<Summary> {
+  return runJobs(
+    items.map((item) => ({
+      sentenceId: item.id,
+      userId: item.userId,
+      role: 'prompt' as const,
+      text: item.sourceText,
+      lang: item.sourceLang,
+    })),
+    options,
+  );
 }
 
 /** Marks rows queued so the UI shows "Generating audio…" before work starts. */

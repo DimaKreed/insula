@@ -33,6 +33,8 @@ const schema = z.object({
   TTS_PROVIDER: z.enum(['elevenlabs', 'google', 'azure', 'openai']).optional(),
   /** Voice id override; otherwise the adapter's first voice for the language. */
   TTS_VOICE: z.string().min(1).optional(),
+  /** Same, for the English hint audio — it must not inherit TTS_VOICE. */
+  TTS_VOICE_EN: z.string().min(1).optional(),
   ELEVENLABS_API_KEY: z.string().min(1).optional(),
   GOOGLE_TTS_CREDENTIALS: z.string().min(1).optional(),
   AZURE_SPEECH_KEY: z.string().min(1).optional(),

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { audioHash, normalizeText, translationHash } from './hash';
+import {
+  audioHash,
+  normalizeText,
+  playlistManifestHash,
+  translationHash,
+} from './hash';
 
 describe('normalizeText', () => {
   it('collapses whitespace and trims', () => {
@@ -70,6 +75,43 @@ describe('audioHash', () => {
   it('differs from the translation hash of the same text', () => {
     expect(audioHash(...args)).not.toBe(
       translationHash(args[3], 'en', 'ro', 'gemini'),
+    );
+  });
+});
+
+/**
+ * The reason the hint set is folded into the compiled track's manifest hash:
+ * a card graduating out of hints has to invalidate a track whose segments and
+ * gaps are otherwise unchanged.
+ */
+describe('playlistManifestHash', () => {
+  const base = {
+    mode: 'listen',
+    segmentHashes: ['s1', 's2', 's3'],
+    gaps: { listen: 1000, hint: 400 },
+  };
+
+  it('changes when a sentence stops being hinted', () => {
+    const before = playlistManifestHash({
+      ...base,
+      hintedSentenceIds: ['a', 'c'],
+    });
+    const after = playlistManifestHash({ ...base, hintedSentenceIds: ['a'] });
+    expect(before).not.toBe(after);
+  });
+
+  it('is stable when nothing changed', () => {
+    const input = { ...base, hintedSentenceIds: ['a', 'c'] };
+    expect(playlistManifestHash(input)).toBe(playlistManifestHash(input));
+  });
+
+  it('distinguishes modes and gap changes', () => {
+    const hinted = { ...base, hintedSentenceIds: ['a'] };
+    expect(playlistManifestHash(hinted)).not.toBe(
+      playlistManifestHash({ ...hinted, mode: 'recall' }),
+    );
+    expect(playlistManifestHash(hinted)).not.toBe(
+      playlistManifestHash({ ...hinted, gaps: { listen: 1500, hint: 400 } }),
     );
   });
 });

@@ -55,3 +55,40 @@ export function audioHash(
 ): string {
   return sha256([provider, voiceId, lang, normalizeText(text), format]);
 }
+
+/**
+ * Key for `playlist_tracks.manifest_hash` — what tells Phase 4's compiler that
+ * a compiled single-file track no longer matches the island it was built from.
+ *
+ * The ordered hinted-sentence ids are part of it because Listen's English hints
+ * are decided per card from `review_states.state`: promote one sentence from
+ * Learning to Review and the track that has its hint baked in is stale, even
+ * though the segments and the gaps are untouched. Folding them in makes that
+ * invalidation automatic; recompiling only re-concatenates segments that
+ * already exist, so no TTS call follows from it.
+ *
+ * Not yet called from anywhere — `playlist_tracks` arrives with Phase 4. It
+ * lives here now so the compiler is written against a hash that already
+ * accounts for hints rather than one that has to be widened afterwards, which
+ * would silently keep serving every track compiled before the change.
+ */
+export function playlistManifestHash(input: {
+  /** listen | shadow | recall. */
+  mode: string;
+  /** `audio_assets.content_hash` of each segment, in playback order. */
+  segmentHashes: string[];
+  /** Sentences whose English hint is baked in, in playback order. */
+  hintedSentenceIds: string[];
+  /** Every gap length baked into the track, in milliseconds. */
+  gaps: Record<string, number>;
+}): string {
+  return sha256([
+    input.mode,
+    input.segmentHashes.join(','),
+    input.hintedSentenceIds.join(','),
+    Object.entries(input.gaps)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join(','),
+  ]);
+}

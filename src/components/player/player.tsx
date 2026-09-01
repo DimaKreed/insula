@@ -11,9 +11,21 @@ import {
   PlayIcon,
   PrevIcon,
 } from '@/components/icons';
+import { prepareListenHints } from '@/actions/player';
 import { OfflineBadge } from '@/components/islands/offline-badge';
 import { getAudioElement } from '@/lib/audio-element';
 import type { PlaylistItem } from '@/lib/offline';
+import {
+  hintsSentence,
+  missingHintAudio,
+  type ListenHintMode,
+} from '@/lib/player/listen-hints';
+import {
+  nextStep,
+  startPhase,
+  type Phase,
+  type PlayerMode,
+} from '@/lib/player/sequence';
 
 /**
  * The Player artboard: one sentence at a time, four modes, one pair of thumbs.
@@ -24,19 +36,48 @@ import type { PlaylistItem } from '@/lib/offline';
  * timeouts between `ended` and the next `play()`, which is honest about the
  * limitation: it works in the foreground, and Phase 4's compiled single-file
  * tracks are what make it reliable on a locked screen.
+ *
+ * Listen plays a sentence in up to two parts — the English hint, then the
+ * Romanian — so playback is driven by a (sentence, phase) pair rather than an
+ * index alone. Which sentences get a hint is decided per card by
+ * `src/lib/player/listen-hints.ts`; the other three modes are Romanian only.
  */
 
 const MODES = [
-  { id: 'listen', label: 'Listen', live: true },
-  { id: 'loop', label: 'Loop one', live: true },
-  { id: 'shadow', label: 'Shadow', live: true },
-  { id: 'recall', label: 'Recall', live: false },
+  {
+    id: 'listen',
+    label: 'Listen',
+    live: true,
+    hint: 'Ear training — take the sound in, nothing to say.',
+  },
+  {
+    id: 'loop',
+    label: 'Loop one',
+    live: true,
+    hint: 'Repeating this sentence until you switch.',
+  },
+  {
+    id: 'shadow',
+    label: 'Shadow',
+    live: true,
+    hint: 'Repeat each sentence aloud in the gap.',
+  },
+  {
+    id: 'recall',
+    label: 'Recall',
+    live: false,
+    hint: 'Produce the translation yourself in the gap.',
+  },
 ] as const;
 
-type Mode = (typeof MODES)[number]['id'];
+type Mode = (typeof MODES)[number]['id'] & PlayerMode;
 
-/** Gap between clips in Listen mode. */
-const LISTEN_GAP_MS = 1000;
+/** What Listen's own line says about hints, per setting. */
+const LISTEN_HINT_COPY: Record<ListenHintMode, string> = {
+  auto: 'English first while a sentence is still new to you.',
+  always: 'English before every sentence.',
+  never: 'Romanian only.',
+};
 const GAP_STORAGE_KEY = 'insula:gap-factor';
 const GAP_MIN = 1;
 const GAP_MAX = 3;
@@ -46,22 +87,29 @@ export function Player({
   islandId,
   islandName,
   islandEmoji,
-  items,
+  items: initialItems,
+  hintMode,
 }: {
   islandId: string;
   islandName: string;
   islandEmoji: string | null;
   items: PlaylistItem[];
+  hintMode: ListenHintMode;
 }) {
+  const [items, setItems] = useState(initialItems);
   const [index, setIndex] = useState(0);
   const [mode, setMode] = useState<Mode>('listen');
   const [playing, setPlaying] = useState(false);
+  const [speaking, setSpeaking] = useState<Phase>('target');
+  const [preparingHints, setPreparingHints] = useState(false);
   const [gapFactor, setGapFactor] = useState(1.5);
 
   // Read by the `ended` handler, which is registered once and must not close
   // over stale state.
-  const state = useRef({ index, mode, gapFactor });
-  state.current = { index, mode, gapFactor };
+  const state = useRef({ index, mode, gapFactor, items, hintMode });
+  state.current = { index, mode, gapFactor, items, hintMode };
+  // Kept out of `state`: playback sets the phase, no render produces it.
+  const phase = useRef<Phase>('target');
   const gapTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -70,27 +118,43 @@ export function Player({
   }, []);
 
   const current = items[index];
+  const currentHinted =
+    mode === 'listen' && hintsSentence(hintMode, current?.srsState ?? null);
 
-  const play = useCallback(
-    (at: number) => {
-      const item = items[at];
-      if (!item) return;
-      const audio = getAudioElement();
-      const src = new URL(item.audioUrl, location.href).href;
-      if (audio.src !== src) audio.src = src;
-      audio.currentTime = 0;
-      audio
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => {
-          setPlaying(false);
-          toast.error(
-            'Could not play this sentence. If you are offline, download the island again.',
-          );
-        });
-    },
-    [items],
-  );
+  /**
+   * Plays one half of a sentence. `want: 'hint'` means "start this sentence
+   * from the top": it falls back to the Romanian whenever a hint does not
+   * apply, is not this mode's business, or has not been synthesized yet, so
+   * every caller can simply ask for the beginning.
+   */
+  const playAt = useCallback((at: number, want: Phase) => {
+    const { items, mode, hintMode } = state.current;
+    const item = items[at];
+    if (!item) return;
+
+    phase.current =
+      want === 'hint' ? startPhase(mode, hintMode, item) : 'target';
+    const useHint = phase.current === 'hint';
+
+    setSpeaking(phase.current);
+
+    const audio = getAudioElement();
+    const src = new URL(
+      useHint ? item.promptAudioUrl! : item.audioUrl,
+      location.href,
+    ).href;
+    if (audio.src !== src) audio.src = src;
+    audio.currentTime = 0;
+    audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => {
+        setPlaying(false);
+        toast.error(
+          'Could not play this sentence. If you are offline, download the island again.',
+        );
+      });
+  }, []);
 
   const stop = useCallback(() => {
     clearTimeout(gapTimer.current);
@@ -101,12 +165,13 @@ export function Player({
   const goTo = useCallback(
     (at: number, autoplay: boolean) => {
       clearTimeout(gapTimer.current);
-      const next = (at + items.length) % items.length;
+      const { length } = state.current.items;
+      const next = (at + length) % length;
       setIndex(next);
-      if (autoplay) play(next);
+      if (autoplay) playAt(next, 'hint');
       else getAudioElement().pause();
     },
-    [items.length, play],
+    [playAt],
   );
 
   // One `ended` listener for the whole session; the mode decides what follows.
@@ -114,23 +179,20 @@ export function Player({
     const audio = getAudioElement();
 
     function onEnded() {
-      const { index: at, mode: current, gapFactor: factor } = state.current;
-
-      if (current === 'loop') {
-        gapTimer.current = setTimeout(() => play(at), LISTEN_GAP_MS);
-        return;
-      }
-
-      const next = (at + 1) % items.length;
-      const wait =
-        current === 'shadow'
-          ? Math.round((audio.duration || 2) * 1000 * factor)
-          : LISTEN_GAP_MS;
+      const { index: at, gapFactor, ...rest } = state.current;
+      const step = nextStep({
+        ...rest,
+        index: at,
+        phase: phase.current,
+        gapFactor,
+        clipMs: (audio.duration || 2) * 1000,
+      });
+      if (!step) return;
 
       gapTimer.current = setTimeout(() => {
-        setIndex(next);
-        play(next);
-      }, wait);
+        setIndex(step.index);
+        playAt(step.index, step.phase);
+      }, step.waitMs);
     }
 
     function onError() {
@@ -146,7 +208,7 @@ export function Player({
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
     };
-  }, [items.length, play]);
+  }, [playAt]);
 
   // Leaving the player stops playback: the audio element outlives this page.
   useEffect(
@@ -156,6 +218,54 @@ export function Player({
     },
     [],
   );
+
+  /**
+   * Makes the English hints this island needs, the first time Listen runs with
+   * hints switched on. Playback never waits for it: a sentence whose hint is
+   * not ready yet plays Romanian only and picks the hint up on the next lap,
+   * which is why this can run in batches without a loading screen in front of
+   * the player.
+   */
+  const hintsRequested = useRef('');
+  useEffect(() => {
+    if (mode !== 'listen' || hintMode === 'never') return;
+    const key = `${islandId}:${hintMode}`;
+    if (hintsRequested.current === key) return;
+    if (missingHintAudio(hintMode, state.current.items).length === 0) return;
+    hintsRequested.current = key;
+
+    let cancelled = false;
+    setPreparingHints(true);
+
+    void (async () => {
+      let list = state.current.items;
+      // Bounded so a batch that keeps failing cannot spin: 12 sentences a call
+      // covers any island the capture limits allow.
+      for (let round = 0; round < 50; round++) {
+        const missing = missingHintAudio(hintMode, list);
+        if (cancelled || missing.length === 0) break;
+
+        const result = await prepareListenHints({
+          islandId,
+          sentenceIds: missing,
+        });
+        if (cancelled) return;
+        if (!result.ok) {
+          toast.error(result.error);
+          break;
+        }
+
+        list = result.data.items;
+        setItems(list);
+        if (result.data.remaining === 0) break;
+      }
+      if (!cancelled) setPreparingHints(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, hintMode, islandId]);
 
   // Lock-screen / notification controls.
   useEffect(() => {
@@ -168,7 +278,9 @@ export function Player({
       album: `${islandEmoji ? `${islandEmoji} ` : ''}${islandName} · Insula`,
     });
     session.playbackState = playing ? 'playing' : 'paused';
-    session.setActionHandler('play', () => play(state.current.index));
+    session.setActionHandler('play', () =>
+      playAt(state.current.index, 'hint'),
+    );
     session.setActionHandler('pause', stop);
     session.setActionHandler('nexttrack', () =>
       goTo(state.current.index + 1, true),
@@ -187,7 +299,7 @@ export function Player({
         session.setActionHandler(action, null);
       }
     };
-  }, [current, islandEmoji, islandName, playing, play, stop, goTo]);
+  }, [current, islandEmoji, islandName, playing, playAt, stop, goTo]);
 
   function changeGap(delta: number) {
     setGapFactor((value) => {
@@ -198,6 +310,13 @@ export function Player({
   }
 
   const progress = ((index + 1) / items.length) * 100;
+  const hintLabel = !currentHinted
+    ? 'Romanian only'
+    : current.promptAudioUrl
+      ? 'English hint first'
+      : preparingHints
+        ? 'Preparing English hint…'
+        : 'English hint unavailable';
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[440px] flex-col overflow-hidden">
@@ -244,10 +363,27 @@ export function Player({
       </header>
 
       <div className="relative flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+        {mode === 'listen' ? (
+          <span
+            className={`rounded-full px-2.5 py-1 text-[10.5px] font-semibold tracking-[0.6px] uppercase ${
+              currentHinted
+                ? 'bg-teal-soft text-teal'
+                : 'bg-surface2 text-ink3'
+            }`}
+          >
+            {hintLabel}
+          </span>
+        ) : null}
         <p className="font-serif text-[31px] leading-[1.3] font-medium tracking-[-0.2px]">
           {current.targetText}
         </p>
-        <p className="text-[15px] leading-relaxed text-ink3">
+        <p
+          className={`text-[15px] leading-relaxed ${
+            playing && speaking === 'hint'
+              ? 'font-medium text-teal'
+              : 'text-ink3'
+          }`}
+        >
           {current.sourceText}
         </p>
       </div>
@@ -335,9 +471,8 @@ export function Player({
         </div>
       ) : (
         <p className="mx-5 mb-6 px-1 text-center text-[11.5px] text-ink3">
-          {mode === 'loop'
-            ? 'Repeating this sentence until you switch.'
-            : 'Playing the island end to end, then starting over.'}
+          {MODES.find((m) => m.id === mode)?.hint}
+          {mode === 'listen' ? ` ${LISTEN_HINT_COPY[hintMode]}` : null}
         </p>
       )}
 
@@ -352,7 +487,7 @@ export function Player({
         </button>
         <button
           type="button"
-          onClick={() => (playing ? stop() : play(index))}
+          onClick={() => (playing ? stop() : playAt(index, 'hint'))}
           aria-label={playing ? 'Pause' : 'Play'}
           className="flex size-23 items-center justify-center rounded-full bg-sand text-on-sand shadow-pop"
         >

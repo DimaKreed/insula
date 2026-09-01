@@ -28,7 +28,7 @@ const TABS = [
     Icon: TranscriptsIcon,
     live: false,
   },
-  { href: '/settings', label: 'Settings', Icon: SettingsIcon, live: false },
+  { href: '/settings', label: 'Settings', Icon: SettingsIcon, live: true },
 ] as const;
 
 function useActive() {

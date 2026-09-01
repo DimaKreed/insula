@@ -37,6 +37,9 @@ export const elevenlabs: TtsProvider = {
     return [
       { id: 'XrExE9yKIg1WjnnlVkGX', label: 'Matilda (multilingual)', lang: 'ro-RO' },
       { id: 'onwK4e9ZLuTAKqWW03F9', label: 'Daniel (multilingual)', lang: 'ro-RO' },
+      // English, for the hint audio Listen and Recall play before the Romanian
+      // — the same multilingual model, asked for a different language.
+      { id: 'XrExE9yKIg1WjnnlVkGX', label: 'Matilda (multilingual)', lang: 'en-US' },
     ];
   },
 

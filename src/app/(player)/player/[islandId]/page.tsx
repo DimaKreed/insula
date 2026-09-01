@@ -4,6 +4,8 @@ import { requireUser } from '@/auth';
 import { Player } from '@/components/player/player';
 import { getIsland } from '@/db/queries/islands';
 import { islandPlaylist } from '@/db/queries/sentences';
+import { userSettings } from '@/db/queries/users';
+import { listenHintMode } from '@/lib/player/listen-hints';
 
 export default async function PlayerPage({
   params,
@@ -15,7 +17,10 @@ export default async function PlayerPage({
   const island = await getIsland(user.id, islandId);
   if (!island) notFound();
 
-  const items = await islandPlaylist(user.id, island.id);
+  const [items, settings] = await Promise.all([
+    islandPlaylist(user.id, island.id),
+    userSettings(user.id),
+  ]);
   if (items.length === 0) notFound();
 
   return (
@@ -24,6 +29,7 @@ export default async function PlayerPage({
       islandName={island.name}
       islandEmoji={island.emoji}
       items={items}
+      hintMode={listenHintMode(settings)}
     />
   );
 }

@@ -192,6 +192,9 @@ playlist_tracks (                          -- compiled single-file audio per isl
   id text PK, island_id FK ON DELETE CASCADE, mode text,   -- listen|shadow|recall
   storage_key text, url text, duration_ms int,
   manifest_hash text,                      -- hash of ordered segment ids + gap config
+                                           --   + ordered hinted sentence ids, so Listen's
+                                           --   per-card hints invalidate a stale track
+                                           --   (src/lib/hash.ts playlistManifestHash)
   status text, created_at
 )
 
@@ -257,7 +260,7 @@ Two details settled in the build:
 
 One persistent audio element + Zustand queue:
 
-- **Listen** — RO clips sequential, 1s gap, loop island
+- **Listen** — ear training. EN hint audio → 0.4s → RO → 1s gap → next, loop island; no pause to speak. Which sentences get the hint is per card from `review_states.state`: `users.settings.listenHint` = `auto` (default — New/Learning hinted, Review/Relearning not) | `always` | `never`. EN audio is the same lazily generated `sentences.prompt_audio_id` Recall uses (`src/lib/player/listen-hints.ts`, `src/lib/audio/prompts.ts`)
 - **Loop one** — repeat current sentence
 - **Shadow (gap)** — RO → silent pause of `duration × gapFactor` (setting, default 1.5) → next
 - **Recall** — EN prompt audio → pause → RO answer → next; EN audio generated lazily on first Recall use per island (cheap EN voice, same pipeline)

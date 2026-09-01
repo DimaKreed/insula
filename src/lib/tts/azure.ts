@@ -44,6 +44,8 @@ export const azure: TtsProvider = {
     return [
       { id: 'ro-RO-AlinaNeural', label: 'Alina (neural)', lang: 'ro-RO' },
       { id: 'ro-RO-EmilNeural', label: 'Emil (neural)', lang: 'ro-RO' },
+      // English, for the hint audio Listen and Recall play before the Romanian.
+      { id: 'en-US-AvaNeural', label: 'Ava (neural)', lang: 'en-US' },
     ];
   },
 

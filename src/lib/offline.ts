@@ -14,6 +14,18 @@ export interface PlaylistItem {
   targetText: string;
   audioUrl: string;
   durationMs: number | null;
+  /** English hint audio, once Listen mode has had it synthesized. */
+  promptAudioUrl: string | null;
+  promptDurationMs: number | null;
+  /** `review_states.state` — what decides whether Listen plays the hint. */
+  srsState: number | null;
+}
+
+/** Every audio file an item can play: the Romanian, and its English hint. */
+function itemUrls(item: PlaylistItem): string[] {
+  return item.promptAudioUrl
+    ? [item.audioUrl, item.promptAudioUrl]
+    : [item.audioUrl];
 }
 
 export interface Manifest {
@@ -64,7 +76,9 @@ export async function offlineState(islandId: string): Promise<OfflineState> {
     (await cache.keys()).map((request) => new URL(request.url).pathname),
   );
   const cached = manifest.items.filter((item) =>
-    keys.has(new URL(item.audioUrl, location.origin).pathname),
+    itemUrls(item).every((url) =>
+      keys.has(new URL(url, location.origin).pathname),
+    ),
   ).length;
 
   return { downloaded: true, cached, total: manifest.items.length };
@@ -93,7 +107,9 @@ export async function downloadIsland(
 
   const cache = await caches.open(cacheName(islandId));
   await cache.put(manifestUrl(islandId), response);
-  await cache.addAll(manifest.items.map((item) => item.audioUrl));
+  // The English hints go in the same bucket: a commute with no signal has to
+  // be able to play a hinted sentence, not just its Romanian.
+  await cache.addAll(manifest.items.flatMap(itemUrls));
 
   // Installed PWAs are exempt from Safari's 7-day eviction; this adds the same
   // protection in browsers that grant it.

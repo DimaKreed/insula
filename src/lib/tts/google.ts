@@ -101,6 +101,8 @@ export const google: TtsProvider = {
     return [
       { id: 'ro-RO-Chirp3-HD-Kore', label: 'Kore (Chirp 3 HD)', lang: 'ro-RO' },
       { id: 'ro-RO-Wavenet-A', label: 'Wavenet A', lang: 'ro-RO' },
+      // English, for the hint audio Listen and Recall play before the Romanian.
+      { id: 'en-US-Neural2-F', label: 'Neural2 F', lang: 'en-US' },
     ];
   },
 

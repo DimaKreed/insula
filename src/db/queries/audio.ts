@@ -61,6 +61,19 @@ export async function linkTargetAudio(sentenceId: string, audioId: string) {
     .where(eq(sentences.id, sentenceId));
 }
 
+/**
+ * Links the English hint audio to a sentence. Unlike `linkTargetAudio` this
+ * leaves `status` alone: the sentence is 'ready' on the strength of its
+ * Romanian audio, and a hint is an extra that must never move the row's state.
+ */
+export async function linkPromptAudio(sentenceId: string, audioId: string) {
+  const db = getDb();
+  await db
+    .update(sentences)
+    .set({ promptAudioId: audioId, updatedAt: new Date() })
+    .where(eq(sentences.id, sentenceId));
+}
+
 export async function markTtsQueued(sentenceIds: string[]) {
   if (sentenceIds.length === 0) return;
   const db = getDb();
@@ -113,4 +126,47 @@ export async function sentencesAwaitingAudio(filter?: {
     .limit(filter?.limit ?? 10_000);
 
   return rows.map((r) => ({ ...r, targetText: r.targetText! }));
+}
+
+export interface AwaitingPromptAudio {
+  id: string;
+  userId: string;
+  islandId: string;
+  sourceText: string;
+  sourceLang: string;
+}
+
+/**
+ * Sentences in an island that have no English hint audio yet — the work list
+ * for the lazy generation Listen mode (and, from Phase 4, Recall) triggers.
+ * Restricted to rows that already have Romanian audio, because only those are
+ * in the playlist at all; a linked sentence stops matching, which is what makes
+ * a second trigger a no-op.
+ */
+export async function sentencesAwaitingPromptAudio(filter: {
+  userId: string;
+  islandId: string;
+  ids?: string[];
+}): Promise<AwaitingPromptAudio[]> {
+  if (filter.ids?.length === 0) return [];
+  const db = getDb();
+  return db
+    .select({
+      id: sentences.id,
+      userId: sentences.userId,
+      islandId: sentences.islandId,
+      sourceText: sentences.sourceText,
+      sourceLang: sentences.sourceLang,
+    })
+    .from(sentences)
+    .where(
+      and(
+        eq(sentences.userId, filter.userId),
+        eq(sentences.islandId, filter.islandId),
+        isNotNull(sentences.targetAudioId),
+        isNull(sentences.promptAudioId),
+        filter.ids ? inArray(sentences.id, filter.ids) : undefined,
+      ),
+    )
+    .orderBy(asc(sentences.position));
 }

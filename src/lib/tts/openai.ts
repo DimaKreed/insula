@@ -42,6 +42,8 @@ export const openai: TtsProvider = {
     return [
       { id: 'nova', label: 'Nova', lang: 'ro-RO' },
       { id: 'marin', label: 'Marin', lang: 'ro-RO' },
+      // English, for the hint audio Listen and Recall play before the Romanian.
+      { id: 'alloy', label: 'Alloy', lang: 'en-US' },
     ];
   },
 
