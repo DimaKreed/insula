@@ -11,7 +11,7 @@ export const translationProviders: Record<
 };
 
 /**
- * The provider the app translates with, selected by TRANSLATION_PROVIDER.
+ * The provider the app calls the model through, selected by TRANSLATION_PROVIDER.
  * Defaults to Gemini: its free tier is what lets the app run without a paid key.
  */
 export function getTranslationProvider(
@@ -31,3 +31,4 @@ export function getTranslationProvider(
 }
 
 export * from './provider';
+export * from './translate';

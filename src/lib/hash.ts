@@ -3,6 +3,9 @@ import { createHash } from 'node:crypto';
 /** Bumped whenever the translation prompt changes, so the cache can't serve stale output. */
 export const TRANSLATION_PROMPT_VERSION = 'v1';
 
+/** Bumped whenever ISLAND_GENERATION_SYSTEM_PROMPT changes, so generated content is attributable to a prompt. */
+export const ISLAND_PROMPT_VERSION = 'v2';
+
 /**
  * Canonical form of a sentence for hashing and duplicate detection: NFC,
  * collapsed whitespace, trimmed, lowercased. Punctuation is kept — "Let's go."

@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.sw.json",
     "bakeoff": "tsx scripts/tts-bakeoff.ts",
     "translate:smoke": "tsx scripts/translate-smoke.ts",
+    "island:spike": "tsx scripts/generate-island-spike.ts",
     "audio:backfill": "tsx scripts/audio-backfill.ts",
     "srs:backfill": "tsx scripts/srs-backfill.ts",
     "db:generate": "drizzle-kit generate",

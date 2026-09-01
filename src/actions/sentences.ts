@@ -21,7 +21,7 @@ import { startAudio } from '@/lib/audio/queue';
 import { parseCaptureLines } from '@/lib/capture';
 import { translationHash } from '@/lib/hash';
 import { checkSentenceQuota, limitsFor, yearMonth } from '@/lib/quota';
-import { chunk, getTranslationProvider } from '@/lib/translate';
+import { chunk, getTranslationProvider, translateBatch } from '@/lib/translate';
 
 import { done, failed, type ActionResult } from './result';
 
@@ -301,7 +301,8 @@ async function runTranslation(
   await Promise.all(
     chunk(pending, provider.batchSize).map(async (batch) => {
       try {
-        const result = await provider.translateBatch(
+        const result = await translateBatch(
+          provider,
           batch.map((s) => ({ id: s.id, text: s.text })),
           sourceLang,
           targetLang,

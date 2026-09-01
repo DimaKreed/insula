@@ -21,7 +21,9 @@ const SENTENCES = [
 ];
 
 async function main() {
-  const { getTranslationProvider } = await import('../src/lib/translate/index');
+  const { getTranslationProvider, translateBatch } = await import(
+    '../src/lib/translate/index'
+  );
 
   const provider = getTranslationProvider();
   const config = provider.isConfigured();
@@ -37,7 +39,7 @@ async function main() {
   );
 
   const items = SENTENCES.map((text, i) => ({ id: `s${i + 1}`, text }));
-  const result = await provider.translateBatch(items, 'en', 'ro');
+  const result = await translateBatch(provider, items, 'en', 'ro');
 
   console.log(`model: ${result.model}\n`);
   for (const t of result.translations) {

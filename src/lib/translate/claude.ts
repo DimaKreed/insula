@@ -1,5 +1,4 @@
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-import { z } from 'zod';
 
 import {
   MODELS,
@@ -7,18 +6,12 @@ import {
   getAnthropic,
   readUsage,
 } from '@/lib/ai/anthropic';
-import {
-  TRANSLATION_SYSTEM_PROMPT,
-  translationUserMessage,
-} from '@/lib/ai/prompts';
 
 import {
-  alignTranslations,
-  assertBatch,
   assertConfigured,
   type ConfigCheck,
-  type TranslationBatchResult,
-  type TranslationInput,
+  type StructuredRequest,
+  type StructuredResult,
   type TranslationProvider,
 } from './provider';
 
@@ -28,19 +21,8 @@ import {
  * TRANSLATION_PROVIDER=claude. Costs roughly $0.10–0.30 per 500 sentences.
  */
 
-/** 10 per call: Claude's structured output stays reliable at this size. */
+/** 10 sentences per translation call: structured output stays reliable at this size. */
 const BATCH_SIZE = 10;
-
-const translationSchema = z.object({
-  translations: z.array(
-    z.object({
-      id: z.string(),
-      translation: z.string(),
-      note: z.string().nullable(),
-      lemmas: z.array(z.string()),
-    }),
-  ),
-});
 
 export const claude: TranslationProvider = {
   name: 'claude',
@@ -52,47 +34,40 @@ export const claude: TranslationProvider = {
       : { ok: false, missing: ['ANTHROPIC_API_KEY'] };
   },
 
-  async translateBatch(
-    items: TranslationInput[],
-    sourceLang: string,
-    targetLang: string,
-  ): Promise<TranslationBatchResult> {
+  async complete<T>(request: StructuredRequest<T>): Promise<StructuredResult<T>> {
     assertConfigured(claude);
-    assertBatch(claude, items);
 
     const model = MODELS.translate;
     const response = await getAnthropic().messages.parse({
       model: model.id,
-      max_tokens: 8000,
+      max_tokens: request.maxOutputTokens,
+      temperature: request.temperature,
       system: [
         {
           type: 'text',
-          text: TRANSLATION_SYSTEM_PROMPT,
-          // Caching applies once the guide passes the model's minimum cacheable
+          text: request.system,
+          // Caching applies once the prompt passes the model's minimum cacheable
           // prefix; below it the API silently skips caching and this is a no-op.
           cache_control: { type: 'ephemeral' },
         },
       ],
-      messages: [
-        {
-          role: 'user',
-          content: translationUserMessage(items, sourceLang, targetLang),
-        },
-      ],
+      messages: [{ role: 'user', content: request.user }],
       output_config: {
         effort: 'low',
-        format: zodOutputFormat(translationSchema),
+        // The zod schema is authoritative here; `responseSchema` is for the
+        // providers that need the OpenAPI subset instead.
+        format: zodOutputFormat(request.parse),
       },
     });
 
-    const parsed = response.parsed_output;
+    const parsed = response.parsed_output as T | null;
     if (!parsed) {
-      throw new Error('Claude returned no parseable translation output');
+      throw new Error(`Claude returned no parseable ${request.label} output`);
     }
 
     const usage = readUsage(response.usage);
     return {
-      translations: alignTranslations('claude', items, parsed.translations),
+      data: parsed,
       usage,
       costMicros: costMicros(model, usage),
       model: model.id,

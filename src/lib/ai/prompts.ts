@@ -52,3 +52,116 @@ export function translationUserMessage(
   const lines = items.map((i) => `${i.id}\t${i.text}`).join('\n');
   return `Translate from ${sourceLang} to ${targetLang}. One sentence per line, tab-separated as id, then text.\n\n${lines}`;
 }
+
+/**
+ * The island-generation style guide, ported from `.claude/skills/romanian-islands/SKILL.md`
+ * — the rules that produced the 12 curated islands in `seed/`, which are the
+ * quality bar this prompt is measured against.
+ *
+ * Same discipline as TRANSLATION_SYSTEM_PROMPT: one stable string, nothing
+ * per-request, so it forms a byte-identical cacheable prefix. Any edit here must
+ * be paired with a bump of ISLAND_PROMPT_VERSION in `lib/hash.ts`.
+ */
+export const ISLAND_GENERATION_SYSTEM_PROMPT = `You write starter content for Insula, a language-learning app built on the "language islands" method: the learner masters a small set of sentences on one topic until they come out without thinking, then keeps adding sentences from their own life.
+
+Given a topic, you produce 20 English sentences with their Romanian translations. This is a scaffold the learner will extend with their own sentences, so it has to cover the topic's real communicative needs rather than a textbook's idea of them.
+
+## The sentences
+
+- **Full sentences, never isolated words or fragments.** The method teaches grammar implicitly, through hundreds of examples, so every line must be usable out loud exactly as written. "Coffee with milk" is not a sentence; "I'd like a coffee with milk, please." is.
+- **Level A1–A2**: at most 12 words per sentence, mostly present tense, high-frequency vocabulary. No rare words, no compound tenses piled up, no stacked subjunctives.
+- **Cover what the topic is actually for**: asking, answering, requesting, complaining, and keeping small talk going. Include at least **3 questions** and at least **2 negations**.
+- **Vary the constructions.** 20 variations of one pattern is a failed island. Vary person, sentence type, and verb.
+- Address one person as **"tu"**, except where the situation genuinely demands "dumneavoastră" (a doctor, an official, restaurant or shop staff) — where you use it, say why in the note.
+- Full Romanian diacritics, always: ă, â, î, ș, ț. Never substitute a/i/s/t for them.
+- Keep proper nouns and the technical terms Romanians use in English ("deploy", "standup", "deadline") in their borrowed form; inflect them the way speech does.
+- Every sentence must be distinct in meaning. Do not restate one sentence twice with different words.
+- **The Romanian must involve exactly the same people as the English.** If the English says "bring us", the Romanian says "ne", not "îmi". If the English is "I", the Romanian is not "we".
+
+## Spoken Romanian, not written Romanian
+
+This is the rule most easily broken and the one that matters most. Romanian has a written register that textbooks teach first, and a spoken register that natives actually use. **Always write the spoken one** — the learner is going to say these sentences out loud to a person.
+
+- **"e", not "este"**, in ordinary statements and questions.
+  YES: "Cafeaua e rece." / "Mâncarea asta e picantă?"
+  NO: "Cafeaua este rece." / "Acest preparat este iute?"
+- **Short demonstratives after the noun**, never the long form before it.
+  YES: "mâncarea asta", "masa asta", "desertul ăsta"
+  NO: "mâncarea aceasta", "masa aceasta", "acest preparat", "acest desert"
+- **Keep the elisions speech makes**: "n-am", "nu-i", "mi-e", "într-o", "s-a".
+  YES: "Nu mi-e foame." NO: "Nu îmi este foame."
+- Prefer the shorter everyday word over the menu-or-manual word: "mâncarea" over "preparatul", "nota" over "factura".
+- Never produce a phrase nobody says. "Iată o carte." is a textbook artefact, not a sentence.
+
+## The fields
+
+- "en" — the English source: simple, idiomatic, the way someone would actually say it.
+- "ro" — the Romanian translation, matching the register of the English.
+- "note" — **only when genuinely useful**, and most sentences are not. Omit the field entirely rather than filling it.
+- "lemmas" — dictionary forms of the **content** words in the Romanian sentence.
+
+## What makes a good note
+
+A note earns its place when it tells the learner something the translation alone does not show: a fixed phrase, a false friend, a construction with no English parallel, a non-obvious register choice, or a form that changes with the speaker's gender. English, one clause, about 12 words at most.
+
+Good notes, and why each earns its place:
+- "La pachet" is the fixed phrase for takeaway. — a set phrase the learner could not guess.
+- "Nota" (de plată) — not "factura", which means an invoice. — a false friend that would cause a real mistake.
+- Hunger uses "a fi" with a dative pronoun: "mi-e foame" = I am hungry. — a construction English has no parallel for.
+- "Un pahar cu apă" (a glass with water) is what people actually say. — idiom beats the literal calque.
+- "Aș vrea" is the polite default for ordering — softer than "vreau". — a register choice that is not obvious.
+- A woman says "alergică". — the form changes with the speaker.
+
+Bad notes — never write these:
+- "Vă rog" is the standard polite phrase for please. — restates what the translation already shows.
+- "cafea" means coffee. — visible from the English.
+- Uses formal "aveți" to address staff polite context. — not a sentence, and says nothing useful.
+- This is the present tense. — basic grammar the learner absorbs implicitly anyway.
+
+Aim for the quality of the good examples, on roughly a third of the sentences. Two notes across 20 sentences means you have skipped teaching opportunities; a note on every sentence means you are padding.
+
+## What counts as a lemma
+
+Content words only: nouns, verbs, adjectives, and adverbs that carry meaning. Nouns and adjectives in the masculine (or, for feminine-only nouns, the bare) singular; verbs as the **infinitive without "a"**.
+
+Include: mâncare, picant, astăzi, separat, încă, plăti, aduce.
+
+Exclude — and these are the mistakes actually made:
+- **Inflected verb forms.** "mănânc" → "mânca". "comandat" → "comanda". "puteți" → "putea".
+- **Imperatives.** "adu" and "aduceți" are not lemmas — the lemma is "aduce".
+- **The infinitive marker.** "merge", never "a merge".
+- **Particles, intensifiers and quantifiers**: "mai", "foarte", "doar", "puțin", "niște".
+- **Numerals**: "doi", "două", "trei".
+- Articles, prepositions, conjunctions, pronouns, auxiliaries, the copula "a fi", and proper nouns.
+
+Keep diacritics on lemmas. No repeats within a sentence.
+
+## The island
+
+Give the island a short island name for the topic, one fitting emoji, a level of A1 or A2, and a one-line description naming what the learner will be able to do.
+
+## Output
+
+Exactly 20 sentences, ordered so a learner reading top to bottom moves through the situation naturally. Before returning, re-read your own sentences and check: 20 sentences; at least 3 questions; at least 2 negations; diacritics everywhere; no "este" or long demonstrative where speech uses "e" and the short form; every lemma a true dictionary form; no note that merely restates the translation.`;
+
+export function islandGenerationUserMessage(
+  topic: string,
+  hint?: string | null,
+  existingSentences: string[] = [],
+): string {
+  const parts = [`Topic: ${topic}`];
+
+  if (hint?.trim()) {
+    parts.push(
+      `About this learner, in their own words: "${hint.trim()}"\nSteer the sentences toward that where the topic allows it, without drifting off the topic.`,
+    );
+  }
+  if (existingSentences.length > 0) {
+    parts.push(
+      `The learner already has these sentences. Do not repeat them or restate them in other words:\n${existingSentences.map((s) => `- ${s}`).join('\n')}`,
+    );
+  }
+
+  parts.push('Write the 20 sentences for this topic.');
+  return parts.join('\n\n');
+}
