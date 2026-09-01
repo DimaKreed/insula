@@ -21,10 +21,10 @@ import type { ReviewLog } from 'ts-fsrs';
 const id = () => text('id').primaryKey().$defaultFn(() => createId());
 
 /**
- * Drizzle schema — Phases 1–3 slice of Implementation Plan section 3: Auth.js
+ * Drizzle schema — Phases 1–5 slice of Implementation Plan section 3: Auth.js
  * tables, islands, sentences, the global translation cache, audio assets, usage
- * accounting and the SRS tables. Presets and transcripts arrive with their
- * phases.
+ * accounting, the SRS tables and the preset tables. Transcripts arrive with
+ * Phase 6.
  */
 
 const createdAt = () =>
@@ -103,6 +103,14 @@ export const islands = pgTable(
     description: text('description'),
     sourceLang: text('source_lang').notNull().default('en'),
     targetLang: text('target_lang').notNull().default('ro'),
+    /** Set when the island came from a preset import, so a re-import is visible. */
+    importedFromPresetId: text('imported_from_preset_id'),
+    /**
+     * How the island's content came to exist: captured by hand, imported from a
+     * preset, or generated from a topic. Read by the UI, which nudges a
+     * generated island toward "now add your own sentences".
+     */
+    origin: text('origin').notNull().default('user'), // user|preset_import|generated
     position: integer('position').notNull().default(0),
     archivedAt: timestamp('archived_at', { withTimezone: true, mode: 'date' }),
     createdAt: createdAt(),
@@ -168,7 +176,9 @@ export const sentences = pgTable(
     promptAudioId: text('prompt_audio_id').references(() => audioAssets.id, {
       onDelete: 'set null',
     }),
-    origin: text('origin').notNull().default('user'), // user|preset_import|transcript
+    origin: text('origin').notNull().default('user'), // user|preset_import|transcript|generated
+    /** Which preset row this was cloned from, for presets the user re-imports. */
+    presetSentenceId: text('preset_sentence_id'),
     position: integer('position').notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -178,6 +188,93 @@ export const sentences = pgTable(
     index('sentences_island_position_idx').on(t.islandId, t.position),
     index('sentences_content_hash_idx').on(t.contentHash),
   ],
+);
+
+// --- Presets (Phase 5) -----------------------------------------------------
+
+/**
+ * A curated or generated island shared across users. Content lives here once;
+ * an import clones the rows into the importer's account and REUSES the same
+ * `audio_assets` ids, so an import costs nothing in TTS (Implementation Plan
+ * section 4.4).
+ *
+ * Not owned by a user the way `islands` is: `created_by` records who built it,
+ * but every published preset is visible to everyone, so no query here carries a
+ * user_id predicate.
+ */
+export const presetIslands = pgTable(
+  'preset_islands',
+  {
+    id: id(),
+    name: text('name').notNull(),
+    emoji: text('emoji'),
+    description: text('description'),
+    level: text('level'), // A1..B2
+    sourceLang: text('source_lang').notNull().default('en'),
+    targetLang: text('target_lang').notNull().default('ro'),
+    position: integer('position').notNull().default(0),
+    published: boolean('published').notNull().default(false),
+    /** 'seed' | 'generated' — how the content was produced, for the admin list. */
+    origin: text('origin').notNull().default('seed'),
+    /** ISLAND_PROMPT_VERSION at generation time; null for seed-file presets. */
+    promptVersion: text('prompt_version'),
+    createdBy: text('created_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('preset_islands_published_idx').on(t.published, t.position)],
+);
+
+/**
+ * Preset content, already translated. `audio_asset_id` is the shared recording
+ * an import links to rather than re-synthesizing; it is null until the preset's
+ * TTS pass has run.
+ */
+export const presetSentences = pgTable(
+  'preset_sentences',
+  {
+    id: id(),
+    presetIslandId: text('preset_island_id')
+      .notNull()
+      .references(() => presetIslands.id, { onDelete: 'cascade' }),
+    sourceText: text('source_text').notNull(),
+    targetText: text('target_text').notNull(),
+    translationNote: text('translation_note'),
+    lemmas: jsonb('lemmas').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    audioAssetId: text('audio_asset_id').references(() => audioAssets.id, {
+      onDelete: 'set null',
+    }),
+    position: integer('position').notNull().default(0),
+  },
+  (t) => [
+    index('preset_sentences_island_position_idx').on(
+      t.presetIslandId,
+      t.position,
+    ),
+  ],
+);
+
+/** One row per user per preset — the primary key is what prevents a double import. */
+export const presetImports = pgTable(
+  'preset_imports',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    presetIslandId: text('preset_island_id')
+      .notNull()
+      .references(() => presetIslands.id, { onDelete: 'cascade' }),
+    /** The island the clone landed in. Nulled if the user deletes that island. */
+    islandId: text('island_id').references(() => islands.id, {
+      onDelete: 'set null',
+    }),
+    importedAt: timestamp('imported_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.presetIslandId] })],
 );
 
 /** Global across users — identical source text is never translated twice. */
@@ -272,7 +369,7 @@ export const usageEvents = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    kind: text('kind').notNull(), // translation|tts|transcript_p1|transcript_p2
+    kind: text('kind').notNull(), // translation|tts|island_generation|transcript_p1|transcript_p2
     provider: text('provider'),
     model: text('model'),
     inputTokens: integer('input_tokens').notNull().default(0),
@@ -297,6 +394,13 @@ export const usageMonthly = pgTable(
     sentencesTranslated: integer('sentences_translated').notNull().default(0),
     ttsChars: integer('tts_chars').notNull().default(0),
     transcriptAnalyses: integer('transcript_analyses').notNull().default(0),
+    /**
+     * Islands generated from a topic. Counted separately from sentences because
+     * generation creates 20 sentences from nothing, which is far cheaper to
+     * abuse than typing them — and every one of those 20 becomes TTS characters
+     * downstream, which is what actually costs money.
+     */
+    islandsGenerated: integer('islands_generated').notNull().default(0),
     aiInputTokens: bigint('ai_input_tokens', { mode: 'number' })
       .notNull()
       .default(0),
@@ -329,8 +433,25 @@ export const sentencesRelations = relations(sentences, ({ one }) => ({
   }),
 }));
 
+export const presetIslandsRelations = relations(presetIslands, ({ many }) => ({
+  sentences: many(presetSentences),
+}));
+
+export const presetSentencesRelations = relations(presetSentences, ({ one }) => ({
+  presetIsland: one(presetIslands, {
+    fields: [presetSentences.presetIslandId],
+    references: [presetIslands.id],
+  }),
+  audio: one(audioAssets, {
+    fields: [presetSentences.audioAssetId],
+    references: [audioAssets.id],
+  }),
+}));
+
 export type AudioAsset = typeof audioAssets.$inferSelect;
 export type Island = typeof islands.$inferSelect;
+export type PresetIsland = typeof presetIslands.$inferSelect;
+export type PresetSentence = typeof presetSentences.$inferSelect;
 export type ReviewLogRow = typeof reviewLogs.$inferSelect;
 export type ReviewState = typeof reviewStates.$inferSelect;
 export type Sentence = typeof sentences.$inferSelect;

@@ -12,11 +12,29 @@ export interface PlanLimits {
   ttsChars: number;
   /** Transcript analyses per month (Phase 6). */
   transcriptAnalyses: number;
+  /**
+   * Islands generated from a topic per month (Phase 5). Deliberately small:
+   * generation conjures 20 sentences from nothing, so it is far cheaper to abuse
+   * than typing them, and each one turns into TTS characters downstream. At 20
+   * sentences of ~40 characters, the free cap is ~2.4k of the 25k character
+   * allowance — generation cannot on its own exhaust the Azure quota.
+   */
+  islandsGenerated: number;
 }
 
 export const PLAN_LIMITS: Record<Tier, PlanLimits> = {
-  free: { sentencesTranslated: 500, ttsChars: 25_000, transcriptAnalyses: 5 },
-  pro: { sentencesTranslated: 2_500, ttsChars: 125_000, transcriptAnalyses: 25 },
+  free: {
+    sentencesTranslated: 500,
+    ttsChars: 25_000,
+    transcriptAnalyses: 5,
+    islandsGenerated: 3,
+  },
+  pro: {
+    sentencesTranslated: 2_500,
+    ttsChars: 125_000,
+    transcriptAnalyses: 25,
+    islandsGenerated: 15,
+  },
 };
 
 /** Per-sentence source-text cap; keeps TTS cost and audio length bounded. */
@@ -89,5 +107,29 @@ export function checkTtsQuota(
     remaining,
     limit: limits.ttsChars,
     message: `You've used ${used.toLocaleString()} of your ${limits.ttsChars.toLocaleString()} monthly audio characters — this sentence needs ${chars}.`,
+  };
+}
+
+export type IslandQuotaCheck =
+  | { allowed: true }
+  | { allowed: false; remaining: number; limit: number; message: string };
+
+/**
+ * Pre-check for one island generation, run BEFORE the model is called — the
+ * same order as the sentence quota, so a user at their cap never spends a
+ * request. One island at a time: there is no batch entry point.
+ */
+export function checkIslandQuota(
+  limits: PlanLimits | null,
+  used: number,
+): IslandQuotaCheck {
+  if (limits === null) return { allowed: true };
+  const remaining = Math.max(0, limits.islandsGenerated - used);
+  if (remaining > 0) return { allowed: true };
+  return {
+    allowed: false,
+    remaining,
+    limit: limits.islandsGenerated,
+    message: `You've generated all ${limits.islandsGenerated} starter islands on your plan this month. You can still add your own sentences to any island — that's the part that matters.`,
   };
 }

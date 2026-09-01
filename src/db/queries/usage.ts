@@ -69,6 +69,63 @@ export async function recordTranslationUsage(u: TranslationUsage) {
     });
 }
 
+export interface IslandGenerationUsage {
+  userId: string;
+  yearMonth: string;
+  provider: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  costMicros: number;
+  /** The island the generation produced. */
+  refId: string;
+}
+
+/**
+ * Records one island generation and bumps the month's counter — the counter
+ * `checkIslandQuota` reads. Called after the model returns, so a failed
+ * generation costs the user nothing.
+ *
+ * The generated sentences are NOT added to `sentences_translated`: they arrive
+ * with Romanian already attached and never enter the translation path, so
+ * counting them there would charge twice for one call.
+ */
+export async function recordIslandGenerationUsage(u: IslandGenerationUsage) {
+  const db = getDb();
+  await db.insert(usageEvents).values({
+    userId: u.userId,
+    kind: 'island_generation',
+    provider: u.provider,
+    model: u.model,
+    inputTokens: u.inputTokens,
+    outputTokens: u.outputTokens,
+    cacheReadTokens: u.cacheReadTokens,
+    costMicros: u.costMicros,
+    refId: u.refId,
+  });
+
+  await db
+    .insert(usageMonthly)
+    .values({
+      userId: u.userId,
+      yearMonth: u.yearMonth,
+      islandsGenerated: 1,
+      aiInputTokens: u.inputTokens + u.cacheReadTokens,
+      aiOutputTokens: u.outputTokens,
+      costMicros: u.costMicros,
+    })
+    .onConflictDoUpdate({
+      target: [usageMonthly.userId, usageMonthly.yearMonth],
+      set: {
+        islandsGenerated: sql`${usageMonthly.islandsGenerated} + 1`,
+        aiInputTokens: sql`${usageMonthly.aiInputTokens} + ${u.inputTokens + u.cacheReadTokens}`,
+        aiOutputTokens: sql`${usageMonthly.aiOutputTokens} + ${u.outputTokens}`,
+        costMicros: sql`${usageMonthly.costMicros} + ${u.costMicros}`,
+      },
+    });
+}
+
 export interface TtsUsage {
   userId: string;
   yearMonth: string;

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   PLAN_LIMITS,
+  checkIslandQuota,
   checkSentenceQuota,
   checkTtsQuota,
   limitsFor,
@@ -92,5 +93,32 @@ describe('checkTtsQuota', () => {
 
   it('exempts admins, who have no limits object', () => {
     expect(checkTtsQuota(null, 10_000_000, 250).allowed).toBe(true);
+  });
+});
+
+describe('checkIslandQuota', () => {
+  const free = PLAN_LIMITS.free;
+
+  it('allows a generation while any of the month allowance is left', () => {
+    expect(checkIslandQuota(free, free.islandsGenerated - 1).allowed).toBe(true);
+  });
+
+  it('refuses at the cap, and points at adding your own sentences instead', () => {
+    const check = checkIslandQuota(free, free.islandsGenerated);
+    expect(check.allowed).toBe(false);
+    if (!check.allowed) {
+      expect(check.remaining).toBe(0);
+      expect(check.message).toContain('your own sentences');
+    }
+  });
+
+  it('refuses once over the cap too, rather than going negative', () => {
+    const check = checkIslandQuota(free, free.islandsGenerated + 5);
+    expect(check.allowed).toBe(false);
+    if (!check.allowed) expect(check.remaining).toBe(0);
+  });
+
+  it('exempts admins, who have no limits object', () => {
+    expect(checkIslandQuota(null, 10_000).allowed).toBe(true);
   });
 });

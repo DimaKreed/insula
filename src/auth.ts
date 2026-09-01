@@ -101,3 +101,19 @@ export async function requireUser(): Promise<SessionUser> {
   const { id, email, role, tier, timezone } = session.user;
   return { id, email, role, tier, timezone };
 }
+
+/**
+ * The admin gate. Redirects a signed-in non-admin to the app rather than to
+ * /login — they are authenticated, just not entitled, and bouncing them to a
+ * login form they have already passed reads as a bug.
+ *
+ * `role` rides on the session JWT, so this costs no query. Promote an account
+ * with `npm run admin -- --user=you@example.com`.
+ */
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== 'admin') {
+    redirect('/islands');
+  }
+  return user;
+}
